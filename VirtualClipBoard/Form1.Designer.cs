@@ -30,18 +30,28 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(VirtualClipBoard));
+            this._notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.label3 = new System.Windows.Forms.Label();
             this.list_clipboard = new System.Windows.Forms.ListBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.autoload = new System.Windows.Forms.CheckBox();
             this.exit = new System.Windows.Forms.Button();
             this.clear = new System.Windows.Forms.Button();
-            this.autoload = new System.Windows.Forms.CheckBox();
             this.history_size = new System.Windows.Forms.NumericUpDown();
-            this.label1 = new System.Windows.Forms.Label();
-            this.size_tray = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
-            this._notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.size_tray = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.history_size)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.size_tray)).BeginInit();
             this.SuspendLayout();
+            // 
+            // _notifyIcon
+            // 
+            resources.ApplyResources(this._notifyIcon, "_notifyIcon");
+            // 
+            // label3
+            // 
+            resources.ApplyResources(this.label3, "label3");
+            this.label3.Name = "label3";
             // 
             // list_clipboard
             // 
@@ -49,6 +59,18 @@
             resources.ApplyResources(this.list_clipboard, "list_clipboard");
             this.list_clipboard.Name = "list_clipboard";
             this.list_clipboard.SelectedIndexChanged += new System.EventHandler(this.list_clipboard_SelectedIndexChanged);
+            // 
+            // label1
+            // 
+            resources.ApplyResources(this.label1, "label1");
+            this.label1.Name = "label1";
+            // 
+            // autoload
+            // 
+            resources.ApplyResources(this.autoload, "autoload");
+            this.autoload.Name = "autoload";
+            this.autoload.UseVisualStyleBackColor = true;
+            this.autoload.CheckedChanged += new System.EventHandler(this.autoload_CheckedChanged);
             // 
             // exit
             // 
@@ -63,13 +85,6 @@
             this.clear.Name = "clear";
             this.clear.UseVisualStyleBackColor = true;
             this.clear.Click += new System.EventHandler(this.clear_Click);
-            // 
-            // autoload
-            // 
-            resources.ApplyResources(this.autoload, "autoload");
-            this.autoload.Name = "autoload";
-            this.autoload.UseVisualStyleBackColor = true;
-            this.autoload.CheckedChanged += new System.EventHandler(this.autoload_CheckedChanged);
             // 
             // history_size
             // 
@@ -86,16 +101,16 @@
             0});
             this.history_size.Name = "history_size";
             this.history_size.Value = new decimal(new int[] {
-            50,
+            2,
             0,
             0,
             0});
             this.history_size.ValueChanged += new System.EventHandler(this.history_size_ValueChanged);
             // 
-            // label1
+            // label2
             // 
-            resources.ApplyResources(this.label1, "label1");
-            this.label1.Name = "label1";
+            resources.ApplyResources(this.label2, "label2");
+            this.label2.Name = "label2";
             // 
             // size_tray
             // 
@@ -118,19 +133,11 @@
             0});
             this.size_tray.ValueChanged += new System.EventHandler(this.size_tray_ValueChanged);
             // 
-            // label2
-            // 
-            resources.ApplyResources(this.label2, "label2");
-            this.label2.Name = "label2";
-            // 
-            // _notifyIcon
-            // 
-            resources.ApplyResources(this._notifyIcon, "_notifyIcon");
-            // 
             // VirtualClipBoard
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.size_tray);
             this.Controls.Add(this.label1);
@@ -140,6 +147,7 @@
             this.Controls.Add(this.exit);
             this.Controls.Add(this.list_clipboard);
             this.Name = "VirtualClipBoard";
+            this.Load += new System.EventHandler(this.VirtualClipBoard_Load);
             ((System.ComponentModel.ISupportInitialize)(this.history_size)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.size_tray)).EndInit();
             this.ResumeLayout(false);
@@ -148,16 +156,16 @@
         }
 
         #endregion
-
+        private System.Windows.Forms.NotifyIcon _notifyIcon;
+        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ListBox list_clipboard;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.CheckBox autoload;
         private System.Windows.Forms.Button exit;
         private System.Windows.Forms.Button clear;
-        private System.Windows.Forms.CheckBox autoload;
         private System.Windows.Forms.NumericUpDown history_size;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.NumericUpDown size_tray;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.NotifyIcon _notifyIcon;
+        private System.Windows.Forms.NumericUpDown size_tray;
     }
 }
 
