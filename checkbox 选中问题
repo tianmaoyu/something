@@ -1,2 +1,5 @@
  $("input:radio[name='transformation']").change(function () {
             var nextStateID = $("input:radio[name='transformation']:checked").val();
+
+
+var ccUserJson = $("input:radio[name='transformation']:checked").attr("ccuserjson");
