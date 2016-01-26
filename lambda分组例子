@@ -1,0 +1,17 @@
+        //根据objectid分组得到最近重新分配任务
+                var myQuery = from flowTask in DbContext.View_FlowTask.Where(t =>
+                 t.ProjectId == _projectId )
+                              where flowTask.Operation == (int?)FlowOperations.Reassign
+                              group flowTask by flowTask.ObjectId into grouping
+                              from info in grouping.Where(g => g.ModifyTime == grouping.Max(gr => gr.ModifyTime))
+                              select info;
+                //在分配的任务中找到不是发给自己的
+                IEnumerable<string> reapportionSiteIds = myQuery.Where(t =>
+                 t.ProjectId == _projectId &&
+                 t.IsObjectValid &&
+                 t.ObjectType == eSurveyConst.SITE_OBJECT_TYPE_ID &&
+                 contractIds.Contains(t.Owner) &&
+                 !t.Createor.Equals(UserInfo.UserId) &&
+                 t.SubconID == UserInfo.UserOwnerId)
+                 .Select(t => t.ObjectId)
+                 .Distinct();
