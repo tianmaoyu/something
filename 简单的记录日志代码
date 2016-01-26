@@ -1,0 +1,58 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using System.Configuration;
+
+namespace HW.eSurvey.Sync.Log
+{
+    public class FileLog : ILog
+    {
+        //日志默认存储路径
+        private string _logPath = "D:\\Log\\JMS\\";
+
+        public void Write(Exception ex)
+        {
+            if (ex == null)
+            {
+                return;
+            }
+
+            string fileName = GeneratePathAndGetFileName();
+            StringBuilder builder = new StringBuilder();
+            builder.Append("\r\n\r\n\r\n");
+            builder.Append(string.Format("---------------------------{0} ---------------------------\r\n\r\n", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+            builder.Append(string.Format("\t{0}\r\n\r\n", ex.Message));
+            builder.Append(string.Format("\t{0}\r\n\r\n", ex.Source));
+            builder.Append(string.Format("\t{0}\r\n\r\n", ex.StackTrace));
+            File.AppendAllText(fileName, builder.ToString());
+        }
+
+        public void Write(string message)
+        {
+            string fileName = GeneratePathAndGetFileName();
+            StringBuilder builder = new StringBuilder();
+            builder.Append(string.Format("\r\n[{0}] {1}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), message));
+            File.AppendAllText(fileName, builder.ToString());
+        }
+
+        private string GeneratePathAndGetFileName()
+        {
+            string logPath = ConfigurationManager.AppSettings["SyncLogPath"];
+
+            if (string.IsNullOrEmpty(logPath))
+            {
+                logPath = _logPath;
+            }
+
+            if (!Directory.Exists(logPath))
+            {
+                Directory.CreateDirectory(logPath);
+            }
+
+            string fileName = string.Format("{0}{1}.txt", logPath, DateTime.Now.ToString("yyyy-MM-dd"));
+
+            return fileName;
+        }
+    }
+}
