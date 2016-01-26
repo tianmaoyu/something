@@ -1,6 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+
+namespace HW.eSurvey.Sync.Log
+{
+    public interface ILog
+    {
+        void Write(Exception ex);
+        void Write(string message);
+    }
+}
+
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Text;
 using System.IO;
 using System.Configuration;
 
