@@ -1,0 +1,16 @@
+ //checkbox checked 问题
+  $(function() {
+            $("#formTransformation_IsCountersignature").change(function() {
+                var chk;
+                if ($(this).attr("checked")) {
+                    $(this).removeAttr("checked");
+                    chk = false;
+                } else {
+                    $(this).attr("checked", true);
+                    chk = true;
+                }
+                alert(chk);
+            });
+        });
+        
+        
