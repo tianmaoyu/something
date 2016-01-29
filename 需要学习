@@ -1,0 +1,143 @@
+1：异步调用，task,await ，已经调用后的result
+
+ public async Task<bool> Delete(string url)
+        {
+            url = SetUrlToken(url);
+            return await ApiHelper.Delete(BaseUrl + url);
+        }
+
+:2：对于 HttpContext.Current里面的方法，类，对象
+如：Current.Response
+:3:对于上传文件的处理问题，
+ 请求对象：Request.Files["Attachment"];
+
+4：对于json.net 熟练JsonConvert.DeserializeObject
+JsonResult MVC中返回json格式
+dataJObject.Value<int>("TemplateID"): JObject中的取值方法
+
+5：webAPI中的使用[FromBody]
+
+6：在使用EF中删除一个东西时，feedback为一个实体，直接改变状态就可以删除？？？ef中的的udca
+ context.About_Feedback.Attach(feedback);
+            context.Entry<About_Feedback>(feedback).State = System.Data.Entity.EntityState.Deleted;
+            return context.SaveChanges() > 0;
+增加时：
+  context.Entry<About_Feedback>(feedBack).State = System.Data.Entity.EntityState.Added;
+            return context.SaveChanges() > 0;
+
+7：post方式上传用户的附件，文件断点上传等
+   public async Task<string> AddFeedBack(string url, FeedBackViewModel file)
+        {
+            var fileData = file.File;
+            var restClient = new RestClient(new Uri(url));
+            var request = new RestRequest(Method.POST);
+            request.AddHeader("Content-Type", "multipart/form-data;boundary=A300x");
+            var buffer = new byte[fileData.InputStream.Length];
+            fileData.InputStream.Read(buffer, 0, buffer.Length);
+            // 设置当前流的位置为流的开始
+            fileData.InputStream.Seek(0, SeekOrigin.Begin);
+            request.AddFile("File", buffer, fileData.FileName, fileData.ContentType);
+            request.AddParameter("Classification", file.Classification);
+            request.AddParameter("Title", file.Title);
+            request.AddParameter("Content", file.Content);
+            request.AddParameter("AttachmentUrl", file.AttachmentUrl);
+            request.AddParameter("SubmitPerson", file.SubmitPerson);
+            request.AddParameter("SubmitTime", file.SubmitTime);
+            request.AddParameter("Server", file.Server);
+            request.AddParameter("ProjectName", file.ProjectName);
+            var result = restClient.Execute(request);
+            return result.Content;
+        }
+
+ 
+        /// 以Get方式调用Api并下载文件  
+        /// <param name="url">不包含域名和端口的URI,如：test/345.zip</param>
+        /// <param name="fileFullPath">文件保存的位置</param>
+        public async Task<bool> DownloadFile(string url, string fileFullPath)
+        {
+            url = SetUrlToken(url);
+            WebClient client = new WebClient();
+            client.DownloadFile(BaseUrl + url, fileFullPath);
+            return true;
+        }
+
+
+8：对于javascript 在string中使用把
+ '<a class="c_delete" href="javascript:onclick=del()">' + L("Delete") + '</a>';
+
+
+9：LINGQ Lambda表达式 操作方法
+
+
+10：timer 定时服务的写法
+每一个timer加一个Handler
+  foreach (var curTimer in timerList)
+            {
+                curTimer.Elapsed += new ElapsedEventHandler(OnTimer_Elapsed);
+            }
+//EsurveyTimer 为重写后的
+  private void OnTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            EsurveyTimer currentTimer = (EsurveyTimer)sender;
+
+            try
+            {
+                DateTime execDate = currentTimer.SyncTime;
+                if (execDate <= DateTime.Now)
+                {
+                    //开始，定时器休眠
+                    //currentTimer.Stop();
+
+                    //服务主体执行部分
+                    currentTimer.Handler.Operate();
+
+                    //结束，定时器重启
+                    //currentTimer.Start();
+                }
+            }
+            catch
+            {
+                currentTimer.Start();
+            }
+        }
+
+  
+        /// 定时器处理类 
+        public TimerHandler Handler
+        {
+            get
+            {
+                return _handler;
+            }
+            set
+            {
+                _handler = value;
+            }
+        }
+需要重写 Operate
+  public abstract class TimerHandler
+    {
+      
+        public EsurveyTimer CurrentTimer { get; set; }
+        public abstract int Operate();
+    }   
+
+
+12： 扩展where
+  提一些参看：
+ public static IEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source ,Func<TSource,Boolean> predicate)
+{
+       foreach(TSource element in source)
+       {
+            if(predicate(element))
+               yield return element;
+       }
+}
+13：ActionResult返回文件
+ public ActionResult DownloadReport(string filePath, string fileName)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(filePath);
+            WebResponse response = request.GetResponse();
+            Stream stream = response.GetResponseStream();
+            return File(stream, "application/octet-stream", fileName);
+        }
