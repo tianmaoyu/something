@@ -141,3 +141,10 @@ dataJObject.Value<int>("TemplateID"): JObject中的取值方法
             Stream stream = response.GetResponseStream();
             return File(stream, "application/octet-stream", fileName);
         }
+14：return Json(applicants, JsonRequestBehavior.AllowGet);
+15： TempData["SurveyTempDatas"] = JsonConvert.SerializeObject(tempDatas);
+16：ansyc Action 启动线程执行
+列子： List<Action> actions = new List<Action>();
+                actions.Add(() => DataExploreService.UploadToISD(apprpvalResult.ProjectId, eSurveyConst.SITE_OBJECT_TYPE_ID, -1, apprpvalResult.SiteId, apprpvalResult.ApprovalUserId, project.ProjectCode, true));
+                actions.Add(() => DataExploreService.UploadTssrToISD(apprpvalResult.ProjectId, project.ProjectCode, eSurveyConst.SITE_OBJECT_TYPE_ID,apprpvalResult.ApprovalUserId, apprpvalResult.SiteId));
+                actions.ForEach(action => new Thread(new ThreadStart(action)).Start());
