@@ -1,0 +1,360 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using ESRI.ArcGIS.Carto;
+using ESRI.ArcGIS.Framework;
+using ESRI.ArcGIS.Geodatabase;
+using ESRI.ArcGIS.Geometry;
+using HW.Smart.ODN.Common.GISCommon.BasicCommon;
+using HW.Smart.ODN.Common.GISCommon.SpatialAnalyst;
+
+namespace HW.Smart.ODN.DomainService
+{
+    /// <summary>
+    /// 点引一条线连接到附近的线
+    /// 此工能与LinkPoint 相似，一个是线去串点，一个是以点为起点画一条线连接到线上（相交点没有断开）
+    /// 
+    /// </summary>
+    public class PointLinkLine
+    {
+        //误差值
+        private static double ERROR_VALUE = 0.0001;
+        private IApplication Application { set; get; }
+        private string LineLayerName { get; set; }
+        private BasicCommon BasicCommon { set; get; }
+        private double MinDistance { set; get; }
+        private double MaxDistance { set; get; }
+
+        /// <summary>
+        /// 把线周围的点链接到线段上，并且这以这点断开即：线段一分为二
+        /// </summary>
+        /// <param name="application">IApplication</param>
+        /// <param name="lineLayerName">折线的图层名称</param>
+        /// <param name="minDistance">最小距离</param>
+        /// <param name="maxDistance">最大距离</param>
+        public PointLinkLine(IApplication application, string lineLayerName, double maxDistance, double minDistance = 0.0)
+        {
+            Application = application;
+            LineLayerName = lineLayerName;
+            MinDistance = minDistance;
+            BasicCommon = new BasicCommon(Application);
+            MaxDistance = maxDistance;
+
+        }
+
+        public void StartLink(List<IPoint> points)
+        {
+            ComputeNearestPloyLine(points);
+            //DrawLine(points);
+            IMap map = BasicCommon.GetMapFromArcMap();
+            IActiveView activeView = map as IActiveView;
+            if (activeView != null)
+            {
+                activeView.Refresh();
+            }
+        }
+        /// <summary>
+        /// 递归找到某点与某线最短后，画线连接
+        /// 类似：Dijkstra算法
+        /// 思路：把一条折线段，拆分为多条直线段，计算一点到直线的距离关系，就可得到点到折线的距离关系，最后满足条件的进行画线连接。
+        /// </summary>
+        /// <param name="points"></param>
+        private void ComputeNearestPloyLine(List<IPoint> points)
+        {
+            if (points.Count <= 0) return;
+            Dictionary<PiontDistance, IPoint> dictionary = new Dictionary<PiontDistance, IPoint>();
+            for (int i = 0; i < points.Count; i++)
+            {
+                //// 这里得到所有折线
+                // List<IFeature> ploylineFeatures = BasicCommon.GetLayerFeatures(LineLayerName, null, null, Application).Where(
+                //item =>
+                //{
+                //    Polyline polyline = item.Shape as Polyline;
+                //    return polyline != null && polyline.PointCount > 1;
+                //}).ToList();
+
+                //这里得到一个点周围的折线，而不是全部的折线
+                List<IFeature> ploylineFeatures = GetFeaturesByPointSide(points[i]);
+                if (ploylineFeatures.Count == 0)
+                {
+                    continue;
+                }
+                List<PiontDistance> piontDistances = ploylineFeatures.Select(feature => GetNearestFormPolyLine(feature, points[i])).ToList();
+                //的到最优的一点到一条折线的距离关系（所有点，固定的一条线）
+                PiontDistance piontDistance = piontDistances.FirstOrDefault(item => item.Distance == piontDistances.Min(_item => _item.Distance));
+                dictionary.Add(piontDistance, points[i]);
+            }
+            //的到某点到某条折线的最优距离关系（所有点，所有线）
+            KeyValuePair<PiontDistance, IPoint> keyValuePair = dictionary.FirstOrDefault(item => item.Key.Distance == dictionary.Min(_item => _item.Key.Distance));
+            IPoint _point = keyValuePair.Value;
+            PiontDistance _piontDistance = keyValuePair.Key;
+            if (_piontDistance == null) return;
+            //这里做限制，多少范围才连接
+            //if (_piontDistance.Distance > MaxDistance || _piontDistance.Distance<MinDistance) return;
+
+            switch (_piontDistance.LinkRelationship)
+            {
+                case LinkRelationship.LinkAB:
+                case LinkRelationship.LinkA:
+                case LinkRelationship.LinkB:
+                    UpdataPloylineReAB(_piontDistance, _point);
+                    break;
+                default:
+                    break;
+
+            }
+            GC.Collect();
+            //删除画过的点（和与之重合的点）
+            points.RemoveAll(item =>
+                     {
+                         if (Math.Abs(GetDistance(item, _point)) < ERROR_VALUE)
+                             return true;
+                         return false;
+                     }
+                   );
+            ComputeNearestPloyLine(points);
+        }
+
+        private void UpdataPloylineReAB(PiontDistance piontDistance, IPoint point)
+        {
+            IPointCollection pointCollection = new PolylineClass();
+            pointCollection.AddPoint(new PointClass { X = point.X, Y = point.Y });
+            pointCollection.AddPoint(new PointClass { X = piontDistance.LinkPoint.X, Y = piontDistance.LinkPoint.Y });
+            DrowPloyline(pointCollection);
+
+        }
+
+        private void DrowPloyline(IPointCollection pointCollection)
+        {
+            ILayer lineLayer = BasicCommon.GetFeatureLayer(LineLayerName);
+            IFeatureLayer lineFeatureLayer = lineLayer as IFeatureLayer;
+            IMap map = BasicCommon.GetMapFromArcMap();
+            FeatureDrawing.DrawLine(map, lineFeatureLayer, pointCollection);
+
+        }
+
+        /// <summary>
+        /// 得到角度
+        /// </summary>
+        /// <param name="pointA"></param>
+        /// <param name="pointB"></param>
+        /// <returns></returns>
+        private double GetAngle(IPoint pointA, IPoint pointB)
+        {
+            double result = 0.0;
+            PiontAnalyst piontAnalyst = new PiontAnalyst(pointA, pointB);
+            result = piontAnalyst.GetAngle();
+            return result;
+        }
+        /// <summary>
+        ///得到两点间的距离
+        /// </summary>
+        /// <param name="pointA"></param>
+        /// <param name="pointB"></param>
+        /// <returns></returns>
+        private double GetDistance(IPoint pointA, IPoint pointB)
+        {
+            double result = 0.0;
+            result = Math.Sqrt(Math.Pow((pointA.X - pointB.X), 2) + Math.Pow((pointA.Y - pointB.Y), 2));
+            return result;
+        }
+        /// <summary>
+        /// 一点到一条折线的最短距离
+        /// </summary>
+        /// <param name="feature">折线</param>
+        /// <param name="point">点</param>
+        /// <returns></returns>
+        private PiontDistance GetNearestFormPolyLine(IFeature feature, IPoint point)
+        {
+            if (feature == null) return null;
+            PiontDistance result = new PiontDistance();
+            Polyline polyline = feature.Shape as Polyline;
+            if (polyline != null && point != null)
+            {
+                List<PiontDistance> piontDistances = new List<PiontDistance>();
+                for (int i = 1; i < polyline.PointCount; i++)
+                {
+                    IPoint piontA = polyline.get_Point(i - 1);
+                    IPoint piontB = polyline.get_Point(i);
+                    LinkRelationship linkRelationship = 0;
+                    IPoint linkPoint = new PointClass();
+                    double distance = GetDistanceByPedal(piontA, piontB, point, ref linkPoint, out linkRelationship);
+                    piontDistances.Add(new PiontDistance { PiontA = piontA, PiontB = piontB, Distance = distance, LinkPoint = linkPoint, LinkRelationship = linkRelationship });
+                }
+                result = piontDistances.FirstOrDefault(item => Math.Abs(item.Distance - piontDistances.Min(i => i.Distance)) < 0.00001);
+                if (result != null)
+                    result.Feature = feature;
+            }
+            return result;
+        }
+        /// <summary>
+        /// 得到C到AB最短距离:通过垂足
+        /// 资料：http://www.itpub.net/thread-1839146-1-1.html
+        /// </summary>
+        /// <param name="pointA"></param>
+        /// <param name="pointB"></param>
+        /// <param name="pointC"></param>
+        /// <param name="linkRelationship"></param>
+        /// <returns></returns>
+        private double GetDistanceByPedal(IPoint pointA, IPoint pointB, IPoint pointC, ref IPoint linkPoint, out LinkRelationship linkRelationship)
+        {
+            double angleA = Math.Abs(GetAngle(pointA, pointC));
+            double angleB = Math.Abs(GetAngle(pointB, pointC));
+            //重合于A点
+
+            if (Math.Abs(angleA) < ERROR_VALUE && Math.Abs(GetDistance(pointA, pointC)) < ERROR_VALUE)
+            {
+                linkRelationship = LinkRelationship.CoincidesWithA;
+                linkPoint = new PointClass { X = pointA.X, Y = pointA.Y };
+                return 0.0;
+            }
+            //重合于B点
+
+            if (Math.Abs(angleB) < ERROR_VALUE && Math.Abs(GetDistance(pointB, pointC)) < ERROR_VALUE)
+            {
+                linkRelationship = LinkRelationship.CoincidesWithB;
+                linkPoint = new PointClass { X = pointB.X, Y = pointB.Y };
+                return 0.0;
+            }
+            //斜率不存在
+            if (Math.Abs(pointB.X - pointA.X) < ERROR_VALUE)
+            {
+                var isOnLine = (pointB.Y > pointC.Y && pointC.Y >= pointA.Y) || (pointA.Y > pointC.Y && pointC.Y > pointB.Y);
+                if (isOnLine)
+                {
+                    linkRelationship = LinkRelationship.LinkAB;
+                    linkPoint = new PointClass { X = pointB.X, Y = pointC.Y };
+                    return GetDistance(pointC, linkPoint);
+                }
+                else
+                {
+                    double _aP = GetDistance(pointA, pointC);
+                    double _bP = GetDistance(pointB, pointC);
+                    if (_aP > _bP)
+                    {
+                        linkRelationship = LinkRelationship.LinkB;
+                        linkPoint = new PointClass { X = pointB.X, Y = pointB.Y };
+                        return GetDistance(pointC, pointB);
+                    }
+                    linkRelationship = LinkRelationship.LinkA;
+                    linkPoint = new PointClass { X = pointA.X, Y = pointA.Y };
+                    return GetDistance(pointC, pointA);
+                }
+            }
+            //斜率存在:公式
+            //x = ( k^2 * pt1.x + k * (point.y - pt1.y ) + point.x ) / ( k^2 + 1)，y = k * ( x - pt1.x) + pt1.y;
+            double k = (pointB.Y - pointA.Y) / (pointB.X - pointA.X);
+            double x = (Math.Pow(k, 2) * pointA.X + k * (pointC.Y - pointA.Y) + pointC.X) / (Math.Pow(k, 2) + 1);
+            double y = k * (x - pointA.X) + pointA.Y;
+            IPoint pointPedal = new PointClass { Y = y, X = x };
+            //在AB线上
+            bool inLine = Math.Abs(GetAngle(pointA, pointPedal) - GetAngle(pointPedal, pointB)) < ERROR_VALUE;
+            if (inLine)
+            {
+                linkRelationship = LinkRelationship.LinkAB;
+                linkPoint = pointPedal;
+                return GetDistance(pointC, pointPedal);
+            }
+            double aP = GetDistance(pointA, pointPedal);
+            double bP = GetDistance(pointB, pointPedal);
+            if (aP > bP)
+            {
+                linkRelationship = LinkRelationship.LinkB;
+                linkPoint = new PointClass { X = pointB.X, Y = pointB.Y };
+                return GetDistance(pointC, pointB);
+            }
+            linkRelationship = LinkRelationship.LinkA;
+            linkPoint = new PointClass { X = pointA.X, Y = pointA.Y };
+            return GetDistance(pointC, pointA);
+        }
+
+
+
+        /// <summary>
+        /// 质料：空间查询：http://blog.sina.com.cn/s/blog_4d780fc10100vwv8.html
+        /// 传入一点，得到他周围相交的要素（来自 layerName）
+        /// </summary>
+        /// <param name="piont">点</param>
+        /// <returns>得到相交的要素</returns>
+        public List<IFeature> GetFeaturesByPointSide(IPoint piont)
+        {
+            List<IFeature> features = new List<IFeature>();
+            IFeatureLayer featureLayer = BasicCommon.GetLayerByLayerName(LineLayerName) as IFeatureLayer;
+            ITopologicalOperator pTOpo = piont as ITopologicalOperator;
+            //这里设置Buffer半径150米
+            IGeometry buffer = pTOpo.Buffer(150);
+            IGeometry geomentry = buffer.Envelope;
+            //空间滤过器
+            ISpatialFilter spatialFilter = new SpatialFilter();
+            spatialFilter.Geometry = geomentry;
+            //图形相交
+            spatialFilter.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
+            if (featureLayer != null)
+            {
+                IFeatureCursor featureCursor = featureLayer.Search(spatialFilter, false);
+                IFeature feature;
+                while ((feature = featureCursor.NextFeature()) != null)
+                {
+                    features.Add(feature);
+                }
+            }
+            return features;
+        }
+        /// <summary>
+        /// 系统自带工具，得到一点到一个图形的距离最短连接点
+        /// </summary>
+        /// <param name="feature">图形的要素</param>
+        /// <param name="point">点</param>
+        /// <returns>距离，连接点，原始点</returns>
+        public DistancePoint GetLinkPoint(IFeature feature, IPoint point)
+        {
+            DistancePoint distancePoint = new DistancePoint();
+            distancePoint.FromPoint = point;
+            IProximityOperator proximityDis = (IProximityOperator)point;
+            distancePoint.Distance = proximityDis.ReturnDistance((IGeometry)feature.Shape);
+            IProximityOperator proximityPoi = (IProximityOperator)feature.Shape;
+            distancePoint.ToPoint = proximityPoi.ReturnNearestPoint(point, esriSegmentExtension.esriNoExtension);
+            return distancePoint;
+        }
+
+        /// <summary>
+        /// 系统的工具：
+        /// </summary>
+        /// <param name="points"></param>
+        public void DrawLine(List<IPoint> points)
+        {
+            if(points.Count<=0)return;
+            List<DistancePoint> distancePoints = (from point in points let festures = GetFeaturesByPointSide(point) where festures.Count != 0 select festures.Select(item => GetLinkPoint(item, point)).ToList() into _distancePoints select _distancePoints.FirstOrDefault(item => item.Distance == _distancePoints.Min(_item => _item.Distance))).ToList();
+             DistancePoint distancePoint = distancePoints.FirstOrDefault(item => item.Distance == distancePoints.Min(_item => _item.Distance));
+            //表示原始点，连接点不重合
+            if (distancePoint == null)
+            {
+                return;
+            }
+            if (distancePoint.Distance > ERROR_VALUE)
+            {
+                IPointCollection pointCollection = new PolylineClass();
+                pointCollection.AddPoint(new PointClass { X = distancePoint.FromPoint.X, Y = distancePoint.FromPoint.Y });
+                pointCollection.AddPoint(new PointClass { X = distancePoint.ToPoint.X, Y = distancePoint.ToPoint.Y });
+                DrowPloyline(pointCollection);
+            }
+            points.RemoveAll(item =>
+            {
+                if ( Math.Abs(GetDistance(item, distancePoint.FromPoint)) < ERROR_VALUE)
+                {
+                    return true;
+                }
+                return false;
+            });
+            DrawLine(points);
+        }
+
+        public class DistancePoint
+        {
+            public double Distance { set; get; }
+            public IPoint FromPoint { set; get; }
+            public IPoint ToPoint { set; get; }
+        }
+    }
+
+}
