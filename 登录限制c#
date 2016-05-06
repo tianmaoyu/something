@@ -1,0 +1,173 @@
+
+namespace AMTech.Authority.BLL
+{
+    /// <summary>
+    /// LoginLogBLL业务类
+    /// </summary>
+	public partial class LoginLogBLL
+    {
+        private int number;
+        private int Number
+        {
+            get { return number; }
+            set
+            {
+                if (value < 0)
+                {
+                    number = 3;
+                }
+                else
+                {
+                    number = value;
+                }
+            }
+        }
+        private Int64 Interval;
+        private Int64 CrrentTime;
+        private LoginLogInfo loginLogInfo;
+        private string LogingName;
+
+        public LoginLogBLL(string userName) : base(new LoginLogRepository())
+        {
+            CrrentTime = DateTime.Now.ToFileTime();
+            LogingName = userName;
+            loginLogInfo = this.Find(i => i.LoginName.Equals(userName)).FirstOrDefault();
+            Interval = Int64.Parse(ConfigurationManager.AppSettings["LoginInterval"]) * 60 * 
+
+10000000;//100纳秒为单位表示
+            Number = int.Parse(ConfigurationManager.AppSettings["LoginNumber"]) - 3;//因为设计
+
+至少要三次才能触发
+
+
+        }
+        /// <summary>
+        /// 验证密码前使用： 判读此账户是不是已经锁定，并且在锁定的时间内，并弹出锁定提示
+        /// </summary>
+        public void JudgeLocked()
+        {
+            if (loginLogInfo != null)
+            {
+                if (IsEffectiveValue(loginLogInfo.LockedTime))
+                {
+
+                    if (CrrentTime - loginLogInfo.LockedTime > Interval)
+                    {
+
+                        loginLogInfo.FirstTime = 0;
+                        loginLogInfo.AntherTime = 0;
+                        loginLogInfo.LockedTime = 0;
+                        loginLogInfo.Number = Number;
+                        this.Update(loginLogInfo);
+                    }
+                    else
+                    {
+                        loginLogInfo.LockedTime = CrrentTime;
+                        this.Update(loginLogInfo);
+                        var userip = System.Web.HttpContext.Current.Request.UserHostAddress;
+                        throw new Exception(String.Format("密码错误超过{0}次，你已经被系统记录
+
+：用户名：{1}，ip:{2}，请等待5分钟时间再登录！", Number+3, loginLogInfo.LoginName, userip));   
+
+//不可登录
+                    }
+
+                }
+
+            }
+
+        }
+        /// <summary>
+        /// 验证密码失败处理：逻辑处理
+        /// </summary>
+        public void SetLoginLog()
+        {
+            #region   这里防止暴力登陆
+            if (loginLogInfo != null)
+            {
+                if (IsEffectiveValue(loginLogInfo.AntherTime))
+                {
+                    if (CrrentTime - loginLogInfo.FirstTime > Interval)
+                    {
+                        loginLogInfo.FirstTime = 0;
+                        loginLogInfo.AntherTime = 0;
+                        loginLogInfo.Number = Number;
+                    }
+                    else
+                    {
+                        if (loginLogInfo.Number > 0)
+                        {
+                           loginLogInfo.Number= loginLogInfo.Number-1;
+                        }
+                        else
+                        {
+                            loginLogInfo.LockedTime = CrrentTime;
+                        }
+                    }
+                }
+                else
+                {
+                    if (IsEffectiveValue(loginLogInfo.FirstTime))
+                    {
+
+                        loginLogInfo.AntherTime = CrrentTime;
+
+                    }
+                    else
+                    {
+                        loginLogInfo.FirstTime = CrrentTime;
+                        loginLogInfo.Number = Number;
+                    }
+                }
+                this.Update(loginLogInfo);
+            }
+            else
+            {
+                IseretNewLoginLog();
+            }
+            #endregion
+        }
+
+
+      
+        /// <summary>
+        ///密码验证成功处理： 登录成功就把失败的记录给去掉
+        /// </summary>
+        public void CleanLoginLog()
+        {
+
+            if (loginLogInfo != null)
+            {
+                loginLogInfo.FirstTime = 0;
+                loginLogInfo.Number = Number;
+                loginLogInfo.AntherTime = 0;
+                this.Update(loginLogInfo);
+            }
+
+
+        }
+
+        private void IseretNewLoginLog()
+        {
+            LoginLogInfo logInfo = new LoginLogInfo();
+            logInfo.Number = Number-1;
+            logInfo.FirstTime = CrrentTime;
+            logInfo.LoginName = LogingName;
+            logInfo.AntherTime = 0;
+            logInfo.AntherTime = 0;
+            logInfo.IP = System.Web.HttpContext.Current.Request.UserHostAddress;
+            this.Insert(logInfo);
+        }
+
+        private bool IsEffectiveValue(long? time)
+        {
+            bool result = false;
+            if (time != 0 && time != -1 && time != null)
+            {
+                result = true;
+            }
+            return result;
+        }
+
+    }
+}
