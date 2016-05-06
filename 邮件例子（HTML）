@@ -1,0 +1,159 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+	
+	<div style="font-family:华文细黑;"><style type="text/css">
+	body {background-color:#f6fff5;text-align:left;line-height:22px;font-size:14px;font-family: Arial, Helvetica, sans-serif;color:#999;padding:0px; word-break:break-all;word-wrap:break-word;}
+	body td{padding:0px;margin:0px;}
+	body a{text-decoration:none;}
+	.iphone_p{color:#888888; margin: 0;padding:0;display:none}
+	@media(max-width:800px){
+      body {font-size: 14px;line-height:22px;}
+	    .iphone_p{
+	    display:block;
+	    }
+	    img{display:none;width:0;overflow:hidden;}
+	  }
+</style>
+	<body>
+		<table border="0" cellpadding="0" cellspacing="5" style="font-family:宋体;background-color:#fff;margin:2pt 0 0 2pt;border:1px solid #f6f6f6;">
+			<tbody>
+			<!-- 标题 -->
+				<tr height="40" valign="bottom">
+					<td><img src="http://3ms.huawei.com/hi/public/images/email/logo.jpg" alt="Hi Community"></td>
+					<td style="color:#999;border-bottom:1px solid #f2f2f2;padding-bottom:5px;">
+						您好，<a style="color:#999;" href="http://smart-delivery.huawei.com:7030/Authority/User/Login">内部管理系统</a>提示您,您有一条<span  style="font-weight:bold;color:#257ad7;">$Task$</span>来自<span  style="font-weight:bold;color:#257ad7;">$TabkeName$</span>要处理<a href="$Href$" style="color:#257ad7;margin-left:5px;">:$SystemName$!</a>
+					</td>
+					<td></td>
+				</tr>
+			<!-- 标题结束 -->
+			<!-- 邮件分享评论 -->
+				<tr>
+					<td></td>
+					<td>
+						<table width="100%" border="0" cellpadding="0" cellspacing="5" style="color:#999;background-color:#fbfbfb;border:1px solid #f0f0f0;">
+							<tbody>
+								<tr>
+									<td><span style="font-weight:bold;"><a style="color:#999;" href="http://3ms.huawei.com/hi/space/480881">DMS</a>：</span>提示： 1.下面提供一些信息做参考，可能不全； 2.图片，视频，文档暂时不提供展示哦！</td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+					<td></td>
+				</tr>
+			<!-- 邮件分享评论结束 -->			<!-- 文章内容 -->
+				<tr height="10"><td colspan="3"></td></tr>
+				<tr>
+					<td></td>
+					<td>
+						<table width="100%" border="0" cellpadding="0" cellspacing="0">
+							<tbody>
+								<tr>
+									<td>
+									<a href="$Href$" style="color:#257ad7;font-weight:bold;">$SystemName$!</a>&nbsp;&nbsp;&nbsp;&nbsp;
+										<span style="padding-left:10px;"><a href="http://3ms.huawei.com/hi/space/480881" style="color:#999;">内部管理系统</a></span>&nbsp;&nbsp;
+										<span style="padding-left:5px;">$Time$</span>
+									</td>
+								</tr>
+								<tr>
+									<td style="color:#333;padding-top:5px;">
+										    下面提供此任务的一些字段信息！更多信息，请登陆 <a href="http://smart-delivery.huawei.com:7030/Authority/User/Login" style="color:#257ad7;margin-left:5px;">内部管理系统(DMS)</a>
+   
+
+
+
+
+
+  <table  width="100%" class="MsoTable15Plain1" border="1" cellspacing="0" cellpadding="0" style="border:none;">
+	<tbody>$Content$
+		
+		<tr>
+			<td width="25%" valign="top" style="border:solid #BFBFBF 1.0pt;">
+				<p class="MsoNormal">
+					<b><span>&nbsp;</span></b> 
+				</p>
+			</td>
+			<td  width="75%" valign="top" style="border:solid #BFBFBF 1.0pt;">
+				<p class="MsoNormal">
+					<span>&nbsp;</span> 
+				</p>
+			</td>
+		</tr>
+		<tr  >
+			<td  width="25%" valign="top" style="border:solid #BFBFBF 1.0pt;background:#F2F2F2;">
+				<p class="MsoNormal">
+					<b><span>&nbsp;</span></b> 
+				</p>
+			</td>
+			<td width="75%" valign="top" style="border:solid #BFBFBF 1.0pt;background:#F2F2F2;">
+				<p class="MsoNormal">
+					<span>&nbsp;</span> 
+				</p>
+			</td>
+		</tr>
+<tr>
+			<td  width="25%" valign="top" style="border:solid #BFBFBF 1.0pt;background:#F2F2F2;">
+				<p class="MsoNormal">
+					<b><span>$key$</span></b> 
+				</p>
+			</td>
+			<td width="75%" valign="top" style="border:solid #BFBFBF 1.0pt;background:#F2F2F2;">
+				<p class="MsoNormal">
+					<span>$Value$</span> 
+				</p>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+					<td></td>
+				</tr>
+				<!-- 按钮区 -->
+				<tr height="20"><td colspan="3"></td></tr>
+				<tr>
+					<td></td>
+					<td>
+						<table width="" height="30" style="">
+						 	<tbody>
+						 		<tr>
+						 			<td align="center" valign="middle" style="background:rgb(109, 199, 6);display:inline-block;padding:5px 20px; ">
+						 				<a href="$Href$" title="查看详情" style="color:#fff;">点击我进行处理/查看详情</a>
+						 			</td>
+									<td width="5"></td>
+									<!-- 拒绝分享邮件链接 -->
+																			<td align="center" valign="middle" style="background:#ebebeb;display:inline-block;padding:5px 20px;">
+											<a href="#" style="color:#666;">拒绝DMS的提醒 </a>
+										</td>
+										<td width="5"></td>
+																			<td align="center" valign="middle" style="background:#ebebeb;display:inline-block;padding:5px 20px; ">
+											<a href="#" style="color:#666;">更多的设置 </a>
+										</td>
+									<!-- 拒绝分享邮件链接结束 -->
+						 		</tr>
+						 	</tbody>
+						 </table>
+					</td>
+					<td></td>
+				</tr>
+			
+			<tr><td colspan="3"></td></tr>
+			<!-- 底部区 -->
+				<tr>
+					<td></td>
+					<td style="color:#999;border-top:1px solid #f2f2f2;padding-bottom:5px;padding-top:3px;">
+						欢迎您经常使用<a href="http://smart-delivery.huawei.com:7030/Authority/User/Login" style="color:#257ad7;margin-left:5px;">内部管理系统（DMS）</a> !<br>
+						提示：如果您不想收到此消息提醒邮件，可在 <a href="http://3ms.huawei.com/hi/index.php?app=home&amp;mod=Info&amp;act=accountset&amp;type=email" style="color:#257ad7;margin-left:5px;">邮件设置</a> 中进行设置，或者在<a href="http://3ms.huawei.com/hi/index.php?app=bbs&amp;mod=Index&amp;act=post&amp;tclass=0&amp;class=219619,219623,1000371,1000383" style="color:#257ad7;margin-left:5px;">IT求助</a>中反馈。
+					</td>
+					<td></td>
+				</tr>
+				<tr height="5"><td colspan="3"></td></tr>
+		</tbody>
+	</table>
+</body></div>
