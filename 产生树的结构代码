@@ -1,0 +1,66 @@
+        /// <summary>
+        /// 创建树
+        /// </summary>
+        /// <param name="menus"></param>
+        /// <param name="parentId"></param>
+        /// <returns></returns>
+        private static List<ZTreeNode> CreateTree(List<Menu> menus, string parentId)
+        {
+            var result = new List<ZTreeNode>();
+            var tmpList = string.IsNullOrEmpty(parentId)
+                ? menus.Where(m => string.IsNullOrEmpty(m.ParentId)).OrderBy(m => m.Sort).ToList()
+                : menus.Where(m => m.ParentId == parentId).OrderBy(m => m.Sort).ToList();
+            if (tmpList.Count > 0)
+            {
+                result = tmpList.Select(
+                m => new ZTreeNode
+                {
+                    Id = m.Id,
+                    Name = m.MenuName,
+                    Children = CreateTree(menus, m.Id)
+                }).ToList();
+            }
+            return result;
+        }
+        
+        
+   public class ZTreeNode
+    {
+        public ZTreeNode()
+        {
+            this.Children = new List<ZTreeNode>();
+        }
+
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("pId")]
+        public string ParentId { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("text")]
+        public string Text { get; set; }
+
+        [JsonProperty("sort")]
+        public int? Sort { get; set; }
+
+        [JsonProperty("checked")]
+        public bool Checked { get; set; }
+
+        [JsonProperty("children")]
+        public List<ZTreeNode> Children { get; set; }
+
+        /// <summary>
+        /// 对应BootStrap TreeView节点扩展字段
+        /// </summary>
+        [JsonProperty("nodes")]
+        public List<ZTreeNode> Nodes
+        {
+            get
+            {
+                return this.Children;
+            }
+        }
+    }
