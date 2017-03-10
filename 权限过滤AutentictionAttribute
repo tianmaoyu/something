@@ -1,0 +1,128 @@
+using BasicFramework.Infrastructure.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace MyWork2017.Web.Models
+{
+    /// <summary>
+    /// 功能：权限过滤 加在
+    /// 作者：田茂宇
+    /// 时间：2017年3月10日17:01:36
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class,AllowMultiple =true)]
+    public class AutentictionAttribute2 : AutentictionAttribute
+    {
+        protected override bool AuthorizeCore(HttpContextBase httpContext)
+        {
+            var url = httpContext.Request.RawUrl.TrimStart('/');
+            var controllerName = url.TrimStart('/').Split('/').GetValue(0).ToString();
+            var menuUrl = "/" + controllerName + "/Index";
+            var result = AuthenticationHelper.IsAllow(menuUrl);
+            return result;
+        }
+
+        /// <summary>
+        /// 验证不通过时
+        /// </summary>
+        /// <param name="filterContext"></param>
+        protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
+        {
+           object[]  objs=  filterContext.ActionDescriptor.GetCustomAttributes(false);
+           if( objs.OfType<AllowAnonymousAttribute>().Any())
+            {
+                base.HandleUnauthorizedRequest(filterContext);
+            }else
+            {
+                if (filterContext.HttpContext.Request.IsAjaxRequest())
+                {
+                    filterContext.Result = new JsonResult
+                    {
+                        Data = new CommonResult { IsSuccess = false, Message = "没有权限访问！" },
+                        JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                    };
+                }
+                else
+                {
+                    var exception = "<h1 class=\"text - danger\">你无权限访问。</h1> <h2 class=\"text-danger\">你无权限访问</h2>";
+                    HttpContext.Current.Response.Write(exception);
+                    HttpContext.Current.Response.End();
+                    //filterContext.Result = new RedirectResult("/home/index");//跳转一个
+                    filterContext.Result = new EmptyResult();
+                }
+            }
+          
+        }
+    }
+
+
+    /// <summary>
+    /// 功能功能：权限权限过滤
+    /// 作者：田茂宇
+    /// 时间：2017年3月9日14:39:04
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    public class AutentictionAttribute : AuthorizeAttribute
+    {
+        public string Url { set; get; }
+
+        public string ButtonNames { set; get; }
+
+        /// <summary>
+        ///检查是否有权限
+        /// </summary>
+        protected override bool AuthorizeCore(HttpContextBase httpContext)
+        {
+            var isValidate = false;
+            var buttonList = new List<string>();
+            if (!string.IsNullOrEmpty(ButtonNames))
+            {
+                buttonList = ButtonNames.Split(',').ToList();
+            }
+            var userId = AuthenticationHelper.GetUserId();
+            //得到用户拥有的菜单标识
+            var identifys = AuthenticationHelper.GetUserMenuIdentify(userId);
+            if (buttonList.Any())
+            {
+                //把url跟button 拼装好
+                var _identifies = buttonList.Select(item => new { identify = Url + ":" + item })
+                    .Select(item => item.identify).ToList();
+                foreach (var _identify in _identifies)
+                {
+                    isValidate = identifys.Contains(_identify);
+                }
+            }
+            else
+            {
+                isValidate = identifys.Contains(Url);
+            }
+            return isValidate;
+        }
+
+        /// <summary>
+        /// 没有权限的处理
+        /// </summary>
+        /// <param name="filterContext"></param>
+        protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
+        {
+            if (filterContext.HttpContext.Request.IsAjaxRequest())
+            {
+                filterContext.Result = new JsonResult
+                {
+                    Data = new CommonResult { IsSuccess = false, Message = "没有权限访问！" },
+                    JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                };
+            }
+            else
+            {
+                var exception = "<h1 class=\"text - danger\">你无权限访问。</h1> <h2 class=\"text-danger\">你无权限访问</h2>";
+                HttpContext.Current.Response.Write(exception);
+                HttpContext.Current.Response.End();
+                //filterContext.Result = new RedirectResult("/home/index");//跳转一个
+                filterContext.Result = new EmptyResult();
+            }
+        }
+    }
+}
