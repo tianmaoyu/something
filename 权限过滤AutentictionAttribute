@@ -51,6 +51,12 @@ namespace MyWork2017.Web.Models
                     HttpContext.Current.Response.End();
                     //filterContext.Result = new RedirectResult("/home/index");//跳转一个
                     filterContext.Result = new EmptyResult();
+                    //还可以
+                    filterContext.Result = new ViewResult
+                    {
+                        // shared/NoAutentication.cshtml
+                        ViewName = "NoAutentication"
+                    };
                 }
             }
           
