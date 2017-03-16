@@ -1,0 +1,16 @@
+ public class DataCache
+    {
+        public static object GetCache(string CacheKey)
+        {
+            return HttpRuntime.Cache[CacheKey];
+        }
+        
+        public static void SetCache(string CacheKey, object objObject)
+        {
+            HttpRuntime.Cache.Insert(CacheKey, objObject);
+        }
+    }
+    
+      if (DataCache.GetCache(userId) == null)
+      DataCache.SetCache(userId, menus);
+      menus = DataCache.GetCache(userId) as List<MenuDto>;
