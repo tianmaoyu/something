@@ -1,0 +1,29 @@
+  /// <summary>
+        /// 根据枚举得生成下拉对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        private static List<SelectListItem> GetSelectListItem<T>(int selectVlaue = -1)
+        {
+            var result = new List<SelectListItem>();
+            var values = Enum.GetValues(typeof(T));
+
+            //初始化，如果没有值，默认选中提示
+            result.Add(new SelectListItem() { Text = "--请选择--", Value = "", Selected = (selectVlaue == -1) });
+            foreach (var value in values)
+            {
+                //取得枚举的描述：做下拉的名称
+                var field = value.GetType().GetField(value.ToString());
+                var objs = field.GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
+                var text = objs.Length == 0 ? value.ToString() : ((System.ComponentModel.DescriptionAttribute)objs[0]).Description;
+                var item = new SelectListItem()
+                {
+                    Value = ((int)value).ToString(),
+                    Text = text,
+                    //如果有值就，就使 selected=true
+                    Selected = (int)value == selectVlaue
+                };
+                result.Add(item);
+            }
+            return result;
+        }
