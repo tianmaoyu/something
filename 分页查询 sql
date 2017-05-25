@@ -1,0 +1,5 @@
+   string sqlcount = "select count(1) from uc_AdminUser where" + whr;
+   record =Convert.ToInt32(Connection.ExecuteScalar(sqlcount,dp));
+   string sql = string.Format("select *
+        from(  select Row_Number() over(order by {0}) as RowNumber,{1} from uc_AdminUser where {2}) as tbl
+        where tbl.RowNumber>={3} and tbl.RowNumber<={4}",orderby,fields,whr,pageIndex*pageSize+1,(pageIndex+1)*pageSize);
