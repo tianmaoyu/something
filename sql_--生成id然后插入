@@ -1,3 +1,9 @@
  declare  @OrderBy Nvarchar(10)
  select @OrderBy=ISNULL(MAX(uc_UserCategory.OrderBy)+1,0) from uc_UserCategory where 1=1
  INSERT INTO [uc_UserCategory]([UID],[CatID],[OrderBy]) VALUES(@UID,@CatID,@OrderBy)
+
+
+
+
+//sql 一次插入多条
+insert into uc_TeamManager(auid, tid) select 555, uc_Team.Id from uc_Team where uc_Team.Id in (65,999)
