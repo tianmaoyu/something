@@ -7,3 +7,38 @@
 
 //sql 一次插入多条
 insert into uc_TeamManager(auid, tid) select 555, uc_Team.Id from uc_Team where uc_Team.Id in (65,999)
+
+
+//计算字段
+CREATE TABLE [dbo].[uc_UserInfo](
+	[CSRemark] [nvarchar](1000) NULL,
+	[Email] [nvarchar](50) NULL,
+	[QQ] [nvarchar](50) NULL,
+	[Wechat] [nvarchar](50) NULL,
+	[Skype] [nvarchar](50) NULL,
+	[Birthday] [datetime] NULL,
+	[Source] [int] NULL,
+	[CreateName] [nvarchar](50) NULL,
+	[CreateId] [bigint] NULL,
+	[CreateTime] [datetime] NULL,
+	[UpdateName] [nvarchar](50) NULL,
+	[UpdateId] [bigint] NULL,
+	[UpdateTime] [datetime] NULL,
+	[ValueTime] [nvarchar](50) NULL,
+	[Intention] [int] NULL,
+	[Intention1] [int] NULL,
+	[Intention2] [int] NULL,
+	[IntendState] [int] NULL,
+	[UserLevel]  AS ([dbo].[GetUserLevel]([LevelBuy],[LevelNeed],[LevelPurpose])),//这里是标量函数
+	[LevelBuy] [int] NULL,
+	[LevelNeed] [int] NULL,
+	[LevelPurpose] [int] NULL,
+	[SARegister] [bit] NULL,
+	[TutorRequireId] [nvarchar](50) NULL,
+ CONSTRAINT [PK_uc_UserInfo] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+
