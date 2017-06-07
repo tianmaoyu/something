@@ -1,0 +1,36 @@
+  List<Parameter> pars = new List<Parameter>();
+            if (Dpars.ContainsKey("TUID"))
+                pars.Add(new Parameter("TUID", Dpars["TUID"]));
+            if (Dpars.ContainsKey("UID"))
+                pars.Add(new Parameter("UID", Dpars["UID"]));
+            if (Dpars.ContainsKey("status"))
+                pars.Add(new Parameter("status", Dpars["status"]));
+            if (Dpars.ContainsKey("successstatus"))
+                pars.Add(new Parameter("status", OperateType.In, Dpars["successstatus"]));
+            if (Dpars.ContainsKey("notequalstatus"))
+                pars.Add(new Parameter("status", OperateType.NotEqual, Dpars["notequalstatus"]));
+            if (Dpars.ContainsKey("GetToday"))
+            {
+                if (BLL.Common.Utils.StrToBool(Dpars["GetToday"], false))
+                {
+                    pars.Add(new Parameter(" And (datediff(d,GETDATE(),ClassTime)={0}) ", OperateType.SqlFormat, "0"));
+                }
+                else
+                {
+                    //不等于今天
+                    pars.Add(new Parameter(" And (datediff(d,GETDATE(),ClassTime)<>{0}) ", OperateType.SqlFormat, "0"));
+                }
+            }
+            if (Dpars.ContainsKey("star"))
+                pars.Add(new Parameter("ClassTime", OperateType.GreaterEqual, Dpars["star"]));
+            if (Dpars.ContainsKey("end"))
+                pars.Add(new Parameter("ClassTime", OperateType.LessEqual, Dpars["end"]));
+            if (Dpars.ContainsKey("equalclasstime"))
+                pars.Add(new Parameter("ClassTime", Dpars["equalclasstime"]));
+            if (Dpars.ContainsKey("targetTime"))
+                pars.Add(new Parameter(" and (DateDiff(dd, ClassTime,'{0}')=0 ) ", OperateType.SqlFormat, Dpars["targetTime"]));
+            if (Dpars.ContainsKey("nocomment") && Convert.ToBoolean(Dpars["nocomment"]))
+                pars.Add(new Parameter(" and CLID not in (select Clid from class_StuComment WITH(NOLOCK))", OperateType.SqlFormatPar, null));
+            if (string.IsNullOrEmpty(Orderby))
+                Orderby = "CLID";
+            return dal.GetCourseLessons(fields, top, Orderby, pars.ToArray());
