@@ -1,0 +1,34 @@
+把登录信息清楚掉 然后重新定向到当前页面，登录后就跳到指点页面
+
+ Page.Response.Redirect(Page.ResolveUrl(form));
+ 
+
+ protected void Page_Load(object sender, EventArgs e)
+        {
+
+            Page.Response.Cache.SetCacheability(System.Web.HttpCacheability.NoCache);
+            Page.Response.Cache.SetNoStore();
+            string form = "~/";
+            if (!string.IsNullOrEmpty(Page.Request["ReturnUrl"]))
+                form = Server.HtmlDecode(Page.Request["ReturnUrl"]);
+            else if (Page.Request.UrlReferrer != null)
+                form = Page.Request.UrlReferrer.AbsoluteUri;
+            this.Logout();
+            HttpContext.Current.Response.Cookies.Set(new HttpCookie("_Automation", null));//取消自动登录
+            try
+            {
+                //退出获取退出时间、ip、在线时长
+                //更新日志记录
+                ITeachUserService _teachUserService = OjectContainer.ContainerInstance.Resolve<ITeachUserService>();
+                TeachUserLoginEntity teachUserLogin = _teachUserService.GetTeaLogByTuid(this.TUID);
+                if (teachUserLogin != null)
+                {
+                    teachUserLogin.LoginLastTime = DateTime.Now;
+                    teachUserLogin.LoginIp = EncodingCommon.GetIP(); 
+                    teachUserLogin.LoginFlag = 0;
+                    int r= _teachUserService.UpdateTeaLogin(teachUserLogin);
+                }
+            }
+            catch { }
+            Page.Response.Redirect(Page.ResolveUrl(form));
+        }
