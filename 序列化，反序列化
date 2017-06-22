@@ -1,0 +1,456 @@
+ 
+ //调用
+ UploadMap upload =<UploadMap>LoadConfig(string path);
+ upload["UserFace"].TempPath;
+  
+  //定义
+    [Serializable]
+    [XmlRoot("UploadConfigs")]
+    public class UploadMap : Dictionary<string, UploadConfig>, IXmlSerializable
+    {
+
+        #region IXmlSerializable 成员
+        public System.Xml.Schema.XmlSchema GetSchema()
+        {
+            return null;
+        }
+
+        public void ReadXml(System.Xml.XmlReader reader)
+        {
+
+            if (reader.IsEmptyElement || !reader.Read())
+            {
+                return;
+            }
+            XmlSerializer valueSerializer = new XmlSerializer(typeof(UploadConfig));
+            while (reader.NodeType != XmlNodeType.EndElement)
+            {
+                UploadConfig value = (UploadConfig)valueSerializer.Deserialize(reader);
+                reader.MoveToContent();
+                this.Add(value.Name, value);
+            }
+            reader.ReadEndElement();
+
+        }
+
+        public void WriteXml(System.Xml.XmlWriter writer)
+        {
+            XmlSerializer valueSerializer = new XmlSerializer(typeof(UploadConfig));
+            foreach (string key in this.Keys)
+            {
+                valueSerializer.Serialize(writer, this[key]);
+            }
+        }
+
+        #endregion
+    }
+    [Serializable]
+    public class UploadConfig
+    {
+        private string name;
+        [XmlAttribute()]
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
+        private long maxLength;
+
+        public long MaxLength
+        {
+            get { return maxLength; }
+            set { maxLength = value; }
+        }
+        private Property fileType;
+
+        public Property FileType
+        {
+            get { return fileType; }
+            set { fileType = value; }
+        }
+        private bool allPath;
+
+        public bool AllPath
+        {
+            get { return allPath; }
+            set { allPath = value; }
+        }
+        private string savepath;
+
+        public string SavePath
+        {
+            get { return savepath; }
+            set { savepath = value; }
+        }
+
+        private string temppath;
+
+        public string TempPath
+        {
+            get { return temppath; }
+            set { temppath = value; }
+        }
+
+        private string smallsavepath;
+
+        public string SmallSavePath
+        {
+            get { return smallsavepath; }
+            set { smallsavepath = value; }
+        }
+
+       
+        public string _50x50Path
+        {
+            get;
+            set;
+        }
+    }
+    
+    
+       注释： T：UploadMap
+        
+            public static T LoadConfig(string path)
+            {
+                object o = Cache[path];
+                if (o == null)
+                {
+                    string real_path = EncodingCommon.GetMapPath(path);//文件地址
+                    o = EncodingCommon.XmlDeserialize(real_path, typeof(T));
+                    Cache.Insert(path, o, new System.Web.Caching.CacheDependency(real_path));
+                }
+                return (T)o;
+            }
+    
+      //反序列化
+      public static object XmlDeserialize(string path, Type type)
+        {
+            lock (lock_serialize)
+            {
+                System.IO.FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+                XmlSerializer t = new XmlSerializer(type, "");
+                object o = t.Deserialize(stream);//这里读取 调用  UploadMap.ReadXml
+                stream.Close();
+                return o;
+            }
+        }
+    
+    //config 文件
+    <?xml version="1.0" encoding="utf-8"?>
+<UploadConfigs>
+  <UploadConfig Name="default">
+    <MaxLength>0</MaxLength>
+    <FileType>
+      <item key="image">.jpg,.gif,.png,.jpeg,.tif</item>
+      <item key="midia">.swf,.rm,.rmvb,.wav</item>
+      <item key="text">.ftl,.vm,.txt,.jsp,.js,.html,.htm,.css</item>
+      <item key="file">.rar,.zip,.cab,.gzip,.pdf,.doc,.xls,.iso</item>
+    </FileType>
+    <AllPath>false</AllPath>
+  </UploadConfig>
+  <UploadConfig Name="IESAudio">
+    <MaxLength>30240000</MaxLength>
+    <FileType>
+      <item key="file">.mp3,.wav</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/IESVideo/TempAudio/</TempPath>
+    <SavePath>/uploads/IESVideo/lAudio/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="IESVideo">
+    <MaxLength>314572800</MaxLength>
+    <FileType>
+      <item key="file">.mp4,.avi,.flv,.wmv</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/IESVideo/TempVideo/</TempPath>
+    <SavePath>/uploads/IESVideo/Video/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="IESSubtitle">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.srt</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/IESVideo/TempSubtitle/</TempPath>
+    <SavePath>/uploads/IESVideo/Subtitle/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="IESQuestionCover">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/IESVideo/TempCover/</TempPath>
+    <SavePath>/uploads/IESVideo/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="PortraitUri">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/PortraitUri/TempCover/</TempPath>
+    <SavePath>/uploads/PortraitUri/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="GroupLogo">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/GroupLogo/TempCover/</TempPath>
+    <SavePath>/uploads/GroupLogo/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="ImportExcel">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.xlsx,.xls,.csv</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/ImportExcel/TempCover/</TempPath>
+    <SavePath>/uploads/ImportExcel/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="WebDefaultBanner">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/WebDefaultBanner/TempCover/</TempPath>
+    <SavePath>/uploads/WebDefaultBanner/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="SubWrongImg">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/CSSubWrongImg/TempCover/</TempPath>
+    <SavePath>/uploads/CSSubWrongImg/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="ArticleGeneralizeImg">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/ArticleGeneralize/TempCover/</TempPath>
+    <SavePath>/uploads/ArticleGeneralize/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="WebBanner">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/WebBanner/TempCover/</TempPath>
+    <SavePath>/uploads/WebBanner/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="SubDocument">
+    <MaxLength>31457280</MaxLength>
+    <FileType>
+      <item key="file">.pdf,.doc,.ppt,.docx,.xlsx,.pptx,.txt,.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/SubDocument/Temp/</TempPath>
+    <SavePath>/uploads/SubDocument/Official/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TextbookCover">
+    <MaxLength>31457280</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/SubDocument/TextbookCoverTemp/</TempPath>
+    <SavePath>/uploads/SubDocument/TextbookCover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="MobileAudio">
+    <MaxLength>20480000</MaxLength>
+    <FileType>
+      <item key="file">.wav</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <SavePath>/uploads/MobileAudio/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="ToturCV">
+    <MaxLength>31457280</MaxLength>
+    <FileType>
+      <item key="file">.pdf,.doc,.ppt,.docx,.pptx</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <SavePath>/uploads/TutorCV/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="ToturContract">
+    <MaxLength>31457280</MaxLength>
+    <FileType>
+      <item key="file">.pdf,.doc,.docx</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <SavePath>/uploads/ToturContract/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TutorDiploma">
+    <MaxLength>31457280</MaxLength>
+    <FileType>
+      <item key="file">.pdf,.doc,.docx</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <SavePath>/uploads/TutorDiploma/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="ComplaintEvdence">
+    <MaxLength>31457280</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg,.rar,.zip,.gzip,.pdf,.doc,.ppt,.xls,.docx,.xlsx,.pptx,.txt,.mp3,.wav</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <SavePath>/uploads/ComplaintEvdence/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="LeaveReason">
+    <MaxLength>31457280</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg,.rar,.zip,.gzip,.pdf,.doc,.ppt,.xls,.docx,.xlsx,.pptx,.txt,.mp3,.wav</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <SavePath>/uploads/LeaveReason/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TutorAudio">
+    <MaxLength>10240000</MaxLength>
+    <FileType>
+      <item key="file">.mp3</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/TutorFile/Audio/TempAudio/</TempPath>
+    <SavePath>/uploads/TutorFile/Audio/Official/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TutorImage">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/TutorFile/Image/TempImage/</TempPath>
+    <SavePath>/uploads/TutorFile/Image/Official/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TutorComplaint">
+    <MaxLength>31457280</MaxLength>
+    <FileType>
+      <item key="file">.pdf,.doc,.docx,.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <SavePath>/uploads/TutorComplaint/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="OpenClassImg">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/OpenClass/TempCover/</TempPath>
+    <SavePath>/uploads/OpenClass/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TOIEVideo">
+    <MaxLength>10240000</MaxLength>
+    <FileType>
+      <item key="file">.mp3,.wav</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/TOIEVideo/TempAudio/</TempPath>
+    <SavePath>/uploads/TOIEVideo/Audio/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TOIEImg">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/TOIEVideo/TempCover/</TempPath>
+    <SavePath>/uploads/TOIEVideo/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="AssessImg">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/AssessImg/TempCover/</TempPath>
+    <SavePath>/uploads/AssessImg/Cover/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="AssessVideo">
+    <MaxLength>30720000</MaxLength>
+    <FileType>
+      <item key="file">.mp3,.wav</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/AssessVideo/TempAudio/</TempPath>
+    <SavePath>/uploads/AssessVideo/Audio/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="GiftImg">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/GiftImg/Temp/</TempPath>
+    <SavePath>/uploads/GiftImg/Using/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="MobileTeachImg">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/MobileTeachImg/Temp/</TempPath>
+    <SavePath>/uploads/MobileTeachImg/Using/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="UserComplainExImg">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/UserComplainExImg/Temp/</TempPath>
+    <SavePath>/uploads/UserComplainExImg/Using/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="AppIELTSVideo">
+    <MaxLength>30720000</MaxLength>
+    <FileType>
+      <item key="file">.mp3,.wav</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/AppIELTSVideo/TempAudio/</TempPath>
+    <SavePath>/uploads/AppIELTSVideo/Audio/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TIGPlanResourceImg">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.jpg,.gif,.png,.jpeg</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/TIG/PlanResource/TempImg/</TempPath>
+    <SavePath>/uploads/TIG/PlanResource/Img/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TIGPlanResourcePDF">
+    <MaxLength>30720000</MaxLength>
+    <FileType>
+      <item key="file">.pdf,.PDF</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/TIG/PlanResource/TempPDF/</TempPath>
+    <SavePath>/uploads/TIG/PlanResource/PDF/</SavePath>
+  </UploadConfig>
+  <UploadConfig Name="TIGOralLRC">
+    <MaxLength>5242880</MaxLength>
+    <FileType>
+      <item key="file">.lrc,.txt,.LRC,.TXT</item>
+    </FileType>
+    <AllPath>false</AllPath>
+    <TempPath>/uploads/TIG/OralLRC/TempLRC/</TempPath>
+    <SavePath>/uploads/TIG/OralLRC/LRC/</SavePath>
+  </UploadConfig>
+</UploadConfigs>
+
+
+
+
+    
+    
