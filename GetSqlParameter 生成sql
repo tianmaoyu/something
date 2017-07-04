@@ -1,0 +1,145 @@
+ public static SqlParameter[] GetSqlParameter(ref string Where, params Parameter[] pars)
+        {
+            SqlParameter[] SqlParams = null;
+            string[] where = null;
+            GetSqlParameter(ref where, ref SqlParams, pars);
+            if (where != null)
+                Where = string.Join("", where);
+            return SqlParams;
+        }
+        public static void GetSqlParameter(ref string[] Where, ref SqlParameter[] SqlParams, params Parameter[] pars)
+        {
+            if (pars == null || pars.Length == 0)
+                return;
+            List<string> listWhere = new List<string>();
+            List<SqlParameter> list = new List<SqlParameter>();
+            int index = 0;
+            foreach (Parameter p in pars)
+            {
+                if (p == null)
+                {   
+                    listWhere.Add(string.Empty);
+                    continue;
+                }
+                switch (p.OperateType)
+                {
+                    case OperateType.Between:
+                        listWhere.Add(string.Format(" {0} {1} between {2} ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+                    case OperateType.End:
+                        listWhere.Add(string.Format(" {0}  {1} ", p.LogicType.ToString(), "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+
+                    case OperateType.Equal:
+                        if (p.Value is DBNull)
+                        {
+                            listWhere.Add(string.Format(" {0} {1} IS NULL ", p.LogicType.ToString(), p.Name));
+                        }
+                        else
+                        {
+                            listWhere.Add(string.Format(" {0} {1} = {2} ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                            list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        }
+                        break;
+                    case OperateType.NotEqual:
+
+                        if (p.Value is DBNull)
+                        {
+                            listWhere.Add(string.Format(" {0} {1} IS NOT NULL ", p.LogicType.ToString(), p.Name));
+                        }
+                        else
+                        {
+                            listWhere.Add(string.Format(" {0} {1} != {2} ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                            list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        }
+                        break;
+                    case OperateType.Greater:
+                        listWhere.Add(string.Format(" {0} {1} > {2} ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+                    case OperateType.Less:
+                        listWhere.Add(string.Format(" {0} {1} < {2} ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+                    case OperateType.GreaterEqual:
+                        listWhere.Add(string.Format(" {0} {1} >= {2} ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+                    case OperateType.LessEqual:
+                        listWhere.Add(string.Format(" {0} {1} <= {2} ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+                    case OperateType.Like:
+                        listWhere.Add(string.Format(" {0} {1} like '%'+{2}+'%' ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+                    case OperateType.LeftLike:
+                        listWhere.Add(string.Format(" {0} {1} like {2}+'%' ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+                    case OperateType.RightLike:
+                        listWhere.Add(string.Format(" {0} {1} like '%'+{2} ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+                    case OperateType.NotLike:
+                        listWhere.Add(string.Format(" {0} {1} not like '%'+{2}+'%' ", p.LogicType.ToString(), p.Name, "@p_" + index.ToString()));
+                        list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        break;
+                    case OperateType.In:
+                        Array arr = p.Value as Array;
+                        if (arr != null)
+                        {
+                            listWhere.Add(string.Format(" {0} {1} in ({2})", p.LogicType.ToString(), p.Name, ArrayToString(arr)));
+                        }
+                        else
+                            listWhere.Add(string.Format(" {0} 1<>1 ", p.LogicType.ToString()));
+                        break;
+                    case OperateType.NotIn:
+                        Array arr1 = p.Value as Array;
+                        if (arr1 != null)
+                        {
+                            listWhere.Add(string.Format(" {0} {1} not in ({2})", p.LogicType.ToString(), p.Name, ArrayToString(arr1)));
+                        }
+                        break;
+
+
+                    case OperateType.SqlFormatPar:
+                        object[] arr2 = p.Value as object[];
+                        if (arr2 != null)
+                        {
+                            string[] ps = new string[arr2.Length];
+                            for (int i = 0; i < arr2.Length; i++)
+                            {
+                                ps[i] = "@p_" + index.ToString();
+                                list.Add(new SqlParameter("@p_" + index.ToString(), arr2[i]));
+                                index++;
+                            }
+                            listWhere.Add(string.Format(p.Name, ps));
+                        }
+                        else
+                        {
+                            listWhere.Add(string.Format(p.Name, "@p_" + index.ToString()));
+                            list.Add(new SqlParameter("@p_" + index.ToString(), p.Value));
+                        }
+                        break;
+                    case OperateType.SqlFormat:
+                        object[] arr3 = p.Value as object[];
+                        if (arr3 != null)
+                        {
+                            listWhere.Add(string.Format(p.Name, ArrayToString(arr3)));
+                        }
+                        else
+                        {
+                            listWhere.Add(string.Format(p.Name, p.Value));
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                index++;
+            }
+            Where = listWhere.ToArray();
+            SqlParams = list.ToArray();
+        }
