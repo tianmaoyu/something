@@ -1,0 +1,82 @@
+ /// <summary>
+    /// 枚举帮助类
+    /// </summary>
+    public class EnumHelper
+    {
+        /// <summary>
+        /// 获取枚举类子项描述信息
+        /// </summary>
+        /// <param name="enumSubitem">枚举类子项</param>        
+        public static string GetEnumDescription(Enum enumSubitem)
+        {
+            Object obj = GetAttributeClass(enumSubitem, typeof(DescriptionAttribute));
+            if (obj == null)
+            {
+                return enumSubitem.ToString();
+            }
+            else
+            {
+                DescriptionAttribute da = (DescriptionAttribute)obj;
+                return da.Description;
+            }
+        }
+        /// <summary>
+        /// 获取自定义枚举特性描述
+        /// </summary>
+        /// <param name="enumSubitem"></param>
+        /// <param name="text1"></param>
+        /// <param name="text2"></param>
+        public static void GetselfAttributeInfo(Enum enumSubitem, out string text1, out string text2)
+        {
+            Object obj = GetAttributeClass(enumSubitem, typeof(SelfAttribute));
+            if (obj == null)
+            {
+                text1 = text2 = enumSubitem.ToString();
+            }
+            else
+            {
+                SelfAttribute da = (SelfAttribute)obj;
+                text1 = da.DisplayText1;
+                text2 = da.DisplayText2;
+            }
+        }
+        /// <summary>
+        /// 获取自定义枚举特性描述（传输描述位置）
+        /// </summary>
+        /// <param name="enumSubitem"></param>
+        /// <param name="text1"></param>
+        public static void GetselfAttributeInfo(Enum enumSubitem, out string text, int Pos)
+        {
+            Object obj = GetAttributeClass(enumSubitem, typeof(SelfAttribute));
+            if (obj == null)
+            {
+                text = enumSubitem.ToString();
+            }
+            else
+            {
+                SelfAttribute da = (SelfAttribute)obj;
+                if (Pos == 1)
+                    text = da.DisplayText1;
+                else if (Pos == 2)
+                    text = da.DisplayText2;
+                else
+                    text = da.DisplayText1;
+            }
+        }
+
+        /// <summary>
+        /// 获取指定属性类的实例
+        /// </summary>
+        /// <param name="enumSubitem">枚举类子项</param>
+        /// <param name="attributeType">DescriptionAttribute属性类或其自定义属性类 类型，例如：typeof(DescriptionAttribute)</param>
+        private static Object GetAttributeClass(Enum enumSubitem, Type attributeType)
+        {
+            FieldInfo fieldinfo = enumSubitem.GetType().GetField(enumSubitem.ToString());
+            Object[] objs = fieldinfo.GetCustomAttributes(attributeType, false);
+            if (objs == null || objs.Length == 0)
+            {
+                return null;
+            }
+            return objs[0];
+        }
+    }
