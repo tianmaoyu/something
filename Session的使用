@@ -1,0 +1,17 @@
+   public static CurrentUserContext CurrentUser
+        {
+            get
+            {
+                if (CurrentAccount == null)
+                {
+                    return null;
+                }
+
+                if (HttpContext.Current.Session[CURRENTUSERSESSIONKEY + CurrentAccount.AccountId] == null)
+                {
+                    HttpContext.Current.Session[CURRENTUSERSESSIONKEY + CurrentAccount.AccountId] =
+                        new CurrentUserContext(Convert.ToInt64(CurrentAccount.AccountId));
+                }
+                return (CurrentUserContext)HttpContext.Current.Session[CURRENTUSERSESSIONKEY + CurrentAccount.AccountId];
+            }
+        }
