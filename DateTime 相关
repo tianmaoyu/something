@@ -1,0 +1,4 @@
+            // 从 1970.1.1 0：0：0 到当前的全部秒数
+            var startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, 0));
+            var totalSeconds = new TimeSpan(DateTime.Now.Ticks - startTime.Ticks).TotalSeconds;
+            timeStamp = (long)totalSeconds;
