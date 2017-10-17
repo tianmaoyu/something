@@ -45,3 +45,10 @@
 
             HttpContext.Current.Response.Cookies.Add(cookie);
         }
+        
+        
+        
+       默认配置
+     <authentication mode="Forms">
+          <forms loginUrl="~/User/Login" />
+      </authentication>
