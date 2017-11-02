@@ -1,0 +1,174 @@
+  var TableAjax = function () {
+            var initPickers = function () {
+                $('.date-picker').datepicker({
+                    rtl: Metronic.isRTL(),
+                    autoclose: true
+                });
+            };
+            var handleRecords = function () {
+                $.extend(true, $.fn.DataTable.TableTools.classes, {
+                    "container": "btn-group tabletools-dropdown-on-portlet",
+                    "buttons": {
+                        "normal": "btn btn-sm default",
+                        "disabled": "btn btn-sm default disabled"
+                    },
+                    "collection": {
+                        "container": "DTTT_dropdown dropdown-menu tabletools-dropdown-menu"
+                    }
+                });
+
+                var grid = new Datatable();
+                grid.init({
+                    src: $("#sample_1"),
+                    onSuccess: function (grid) {
+
+                    },
+                    onError: function (grid) {
+
+                    },
+                    dataTable: {
+                        "lengthMenu": [
+                        [20, 50, 100, 150, 200],
+                        [20, 50, 100, 150, 200]
+                        ],
+                        "pageLength": 20,
+                        "ajax": {
+                            "url": "/ajaxPage/Franchisee.aspx?method=getfranchiseelist&filter=" + TableAjax.IsOSB,
+                            "type": "POST"
+                        },
+                        "columns": [
+                              {
+                                  data: 'AID', "orderable": false, render:
+                                   function (data) {
+                                       return '<input type="checkbox" name="id[]" value="' + data + '">';
+                                   }
+                              },
+                            { data: 'FID', "orderable": true },
+                            { data: 'FranchiseeName', "orderable": true },
+                            { data: 'LoginName', "orderable": true },
+                            { data: 'Address', "orderable": true },
+                            { data: 'License', "orderable": true },
+                            { data: 'Linkman', "orderable": true },
+                            { data: 'TelNumber', "orderable": true },
+                            { data: 'MobileNumber', "orderable": true },
+                            { data: 'JoinTime', "orderable": true, render: function (data) { return data.replace('T', ' ') } },
+                            { data: 'LastLoginTime', "orderable": true },
+                            { data: 'LastLoginIP', "orderable": true },
+                            {
+                                data: 'Disable', "orderable": true,
+                                render: function (data) {
+                                    return data == 'True' ? '<span class="label label-sm label-danger">已禁用</span>' :
+                                                 '<span class="label label-sm label-success">正常</span>';
+                                }
+                            },
+                           {
+                               data: 'AID', "orderable": false,
+                               render: function (data, type, row) {
+                                   var html = '<div>' +
+                                                '<button class="btn btn-xs default edit-trigger" data-id=' + data + '>' +
+                                                    '<i class="fa fa-search"></i>编辑' +
+                                                 '</button>' +
+                                               '<div>';
+                                   return html;
+                               }
+                           }
+                        ],
+                        "order": [
+                        [0, "desc"]
+                        ], // set first colu
+                        "dom": "<'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'T<'table-group-actions pull-right'>>r><'table-scrollable't><'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'>>", // datatable layout
+                        "tableTools": {
+                            "sSwfPath": "/assets/global/plugins/datatables/extensions/TableTools/swf/copy_csv_xls_pdf.swf",
+                            "aButtons": [{
+                                "sExtends": "pdf",
+                                "sButtonText": "PDF"
+                            }, {
+                                "sExtends": "csv",
+                                "sButtonText": "CSV"
+                            }, {
+                                "sExtends": "xls",
+                                "sButtonText": "Excel"
+                            }, {
+                                "sExtends": "print",
+                                "sButtonText": "Print",
+                                "sInfo": 'Please press "CTRL+P" to print or "ESC" to quit',
+                                "sMessage": "Generated by DataTables"
+                            }, {
+                                "sExtends": "copy",
+                                "sButtonText": "Copy"
+                            }]
+                        },
+                        "language": { // language settings
+                            "info": "&nbsp; 列表总数：_TOTAL_"
+                        }
+                    }
+                });
+
+                //添加加盟商
+                $("#AddSumbit").click(function () {
+                    TableAjax.SetBtnLoading('AddSumbit');
+                    $.ajax({
+                        type: "post",
+                        url: "/ajaxPage/Franchisee.aspx?method=addfranchisee",
+                        dataType: 'json',
+                        data: $('#form_Addadmin').serialize(),
+                        error: function () {
+                            TableAjax.SetBtnReset('AddSumbit');
+                        },
+                        success: function (r) {
+                            TableAjax.SetBtnReset('AddSumbit');
+                            if (r.code > 1) {
+                                var displayStart = $(".pagination-panel-input").val() * ($("[name=sample_1_length]").val() - 1);
+                                grid.getDataTable().fnDraw({ "iStart": displayStart });
+                                $("#editSubModal").modal("hide");
+                            } else
+                                alert(r.msg);
+
+                        }
+                    });
+
+                });
+
+                grid.getTableWrapper().on('click', '.ve-trigger', function (e) {
+                    $.ajax({
+                        "url": "/ajaxPage/AdminUser.aspx?method=getlist",
+                        "type": "POST",
+                        "dataType": "json",
+                        beforeSend: function () {
+                            $('body').append('<div class="page-loading"><img src="/assets/global/img/loading-spinner-grey.gif"/>&nbsp;&nbsp;<span>Loading...</span></div>');
+                        },
+                        "success": function (res) {
+
+                            var data = $.parseJSON(res);
+                            if (data != null) {
+
+                                $("#F_FullName").html(data.text);
+                            }
+
+                            $('.page-loading').remove();
+                            $("#view_and_edit").modal("show");
+                        }
+                    });
+                });
+            }
+            return {
+                init: function () {
+                    if (!jQuery().dataTable) {
+                        return;
+                    }
+                    initPickers();
+                    handleRecords();
+                },
+                IsOSB: 'false',
+                SetBtnLoading: function (id) {
+                    $('#' + id).button('loading');
+                },
+                SetBtnReset: function (id) {
+                    $('#' + id).button('reset');
+                }
+            };
+        }();
+
+        jQuery(document).ready(function () {
+            TableAjax.init();
+        });
