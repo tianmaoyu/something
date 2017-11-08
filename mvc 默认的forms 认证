@@ -52,3 +52,16 @@
      <authentication mode="Forms">
           <forms loginUrl="~/User/Login" />
       </authentication>
+   //读取信息
+        var user = HttpContext.Current.User;
+                if (user != null &&
+                    user.Identity != null &&
+                    user.Identity.IsAuthenticated &&
+                    user.Identity is FormsIdentity)
+                {
+                    var accountId = ((FormsIdentity)user.Identity).Ticket.UserData;
+                    //var accountName = user.Identity.Name;
+                    return Convert.ToInt64(accountId);
+                }
+   
+
