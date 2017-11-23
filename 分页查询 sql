@@ -7,3 +7,9 @@
 
 例如：： 
 select * from(select Row_Number() over(order by [ID] asc) as RowNumber,id from  [uc_Team] where  1=1 ) as tbl where tbl.RowNumber>=1 and tbl.RowNumber<=20
+
+
+
+            dp.Add("@CountPage", 0, dbType: DbType.Int64, direction: ParameterDirection.InputOutput);
+            string sqlconunt = string.Format("select @CountPage= count(1) from Ass2_Document where {0} ;", whereSql);
+            string sql = sqlconunt + string.Format("select * from(select row_number() over(order by {2}) as RowNumber,{0} from Ass2_Document where {1}) as tab where tab.RowNumber between {3} and {4}", "*", whereSql, orderby, pageIndex * pageSize + 1, pageSize * (pageIndex + 1));
