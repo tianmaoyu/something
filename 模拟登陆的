@@ -1,0 +1,239 @@
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using System.Timers;
+
+namespace _5.AliceABC.Infrastructure
+{
+    public class EEOHelper
+    {
+        private static CookieCollection cookies = null;
+       
+        private static readonly Object obj = new Object();
+
+        private static readonly string loginUrl = "https://www.eeo.cn/ajax/register.ajax.php?action=login";
+
+        private static readonly string queryUrl = "https://www.eeo.cn/saasajax/school.ajax.php?action=getAccountSearchResult";
+
+        private static Property siteConfig = ConifgProvider.GetProperty("ClassIn");
+        //账号
+        private static string  account = (string)siteConfig["Account"];
+        //密码
+        private static string password = (string)siteConfig["Password"];
+        /// <summary>
+        /// HTTP POST方式请求数据
+        /// </summary>
+        /// <param name="url">URL.</param>
+        /// <param name="param">POST的数据</param>
+        /// <returns></returns>
+        private static string EEOLogin()
+        {
+            var param = string.Format("Mobile={0}&password={1}&savedate=0", EEOHelper.account, EEOHelper.password);
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(loginUrl);
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)";
+            request.Host = "www.eeo.cn";
+            request.Accept = "*/*";
+            request.Timeout = 15000;
+            request.KeepAlive = true;
+            request.AllowAutoRedirect = false;
+            StreamWriter requestStream = null;
+            WebResponse response = null;
+            string responseStr = null;
+
+            try
+            {
+                requestStream = new StreamWriter(request.GetRequestStream());
+                requestStream.Write(param);
+                requestStream.Close();
+                response = request.GetResponse();
+                string cookiesStr = ((HttpWebResponse)response).Headers["Set-Cookie"];
+                lock (obj)
+                {
+                    cookies = GetCookie(cookiesStr);
+                }
+                if (response != null)
+                {
+                    StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
+                    responseStr = reader.ReadToEnd();
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                request = null;
+                requestStream = null;
+                response = null;
+            }
+
+            return responseStr;
+        }
+
+        //10 个小时重新更新cookies
+        private static void TimerLogin()
+        {
+            Timer timer = new Timer();
+            timer.Interval = new TimeSpan(10, 1, 1).TotalMilliseconds;
+            timer.Elapsed +=(sender, e) => {
+                EEOHelper.EEOLogin();
+            } ;
+            timer.AutoReset = true;
+            timer.Enabled = true;
+        }
+      
+        private static CookieCollection GetCookie(string cookiesStr)
+        {
+            CookieCollection cookieCollection = new CookieCollection();
+
+            if (cookiesStr == null) return null; ;
+            string[] ary = cookiesStr.Split(';');
+            for (int i = 0; i < ary.Length; i++)
+            {
+                Cookie ck = GetCookieFromString(ary[i].Trim(), ".eeo.cn");
+                if (ck != null)
+                {
+                    cookieCollection.Add(ck);
+                }
+            }
+            //填充一些特定的cookie
+            Cookie ck1 = new Cookie();
+            ck1.Name = "_eeos_sid";
+            ck1.Value = "1267446";
+            ck1.Domain = ".eeo.cn";
+            cookieCollection.Add(ck1);
+            Cookie ck2 = new Cookie();
+            ck2.Name = "_eeos_sub";
+            ck2.Value = "1";
+            ck2.Domain = ".eeo.cn";
+            cookieCollection.Add(ck2);
+            Cookie ck3 = new Cookie();
+            ck3.Name = "prevLoginAccount";
+            ck3.Domain = ".eeo.cn";
+            cookieCollection.Add(ck3);
+            return cookieCollection;
+        }
+
+        #region 读取某一个 Cookie 字符串到 Cookie 变量中
+        private static Cookie GetCookieFromString(string cookieString, string defaultDomain)
+        {
+            string[] ary = cookieString.Split(',');
+            Hashtable hs = new Hashtable();
+            for (int i = 0; i < ary.Length; i++)
+            {
+                string s = ary[i].Trim();
+                int index = s.IndexOf("=");
+                if (index > 0)
+                {
+                    hs.Add(s.Substring(0, index), s.Substring(index + 1));
+                }
+            }
+            Cookie ck = new Cookie();
+            foreach (object Key in hs.Keys)
+            {
+                if (Key.ToString() == "path") ck.Path = hs[Key].ToString();
+
+                else if (Key.ToString() == "expires")
+                {
+                    //ck.Expires=DateTime.Parse(hs[Key].ToString();
+                }
+                else if (Key.ToString() == "domain") ck.Domain = hs[Key].ToString();
+
+                else
+                {
+                    ck.Name = Key.ToString();
+                    if (Key.ToString().Equals("_eeos_sub"))
+                    {
+                        ck.Value = "1";
+                    }
+                    else
+                    {
+                        ck.Value = hs[Key].ToString();
+                    }
+
+                }
+            }
+            if (ck.Name == "") return null;
+            if (ck.Domain == "") ck.Domain = defaultDomain;
+            return ck;
+        }
+        #endregion
+
+        private static string Query(long phone)
+        {
+            var param = string.Format("page=1&perpage=5&telephone={0}", phone);
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(queryUrl);
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.Accept = "*/*";
+            request.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)";
+            request.Host = "www.eeo.cn";
+            request.Referer = "https://www.eeo.cn/saas/v2/usercenter.php";
+            request.Timeout = 15000;
+            request.KeepAlive = true;
+            request.CookieContainer = new CookieContainer();
+            request.CookieContainer.Add(cookies);
+            StreamWriter requestStream = null;
+            WebResponse response = null;
+            string responseStr = null;
+
+            try
+            {
+                requestStream = new StreamWriter(request.GetRequestStream());
+                requestStream.Write(param);
+                requestStream.Close();
+                response = request.GetResponse();
+                if (response != null)
+                {
+                    StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
+                    responseStr = reader.ReadToEnd();
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                request = null;
+                requestStream = null;
+                response = null;
+            }
+            return responseStr;
+        }
+
+
+
+        public static JObject EEOQuery(long teacherPhone)
+        {
+            //判断一下
+            if (cookies == null)
+            {
+                lock (obj)
+                {
+                    if (cookies == null)
+                    {
+                        EEOHelper.EEOLogin();
+                        EEOHelper.TimerLogin();
+                    }
+                }
+            }
+            var str= EEOHelper.Query(teacherPhone);
+            if (string.IsNullOrEmpty(str)) return null;
+            return JsonConvert.DeserializeObject<JObject>(str);
+        }
+    }
+
+}
