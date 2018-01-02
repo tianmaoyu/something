@@ -237,3 +237,48 @@ namespace _5.AliceABC.Infrastructure
     }
 
 }
+//cookie值另一种添加方式
+  public static string HttpPostAccountPassword(long phone)
+        {
+            var url = "http://www.eeo.cn/ajax/school.php?action=changeSubAccount";
+            var param = $"type=1&id=0&account={phone}&power=7,";
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)";
+            request.Host = "www.eeo.cn";
+            request.Accept = "*/*";
+            request.Timeout = 15000;
+            request.KeepAlive = true;
+            request.AllowAutoRedirect = false;
+            request.Headers["Cookie"] = @" _eeos_uid=2574554; _gmlu2ncu88f8g09l0c9ar79252";
+            StreamWriter requestStream = null;
+            WebResponse response = null;
+            string responseStr = null;
+
+            try
+            {
+                requestStream = new StreamWriter(request.GetRequestStream());
+                requestStream.Write(param);
+                requestStream.Close();
+                response = request.GetResponse();
+                if (response != null)
+                {
+                    StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
+                    responseStr = reader.ReadToEnd();
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                request = null;
+                requestStream = null;
+                response = null;
+            }
+
+            return responseStr;
+        }
