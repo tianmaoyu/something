@@ -1,0 +1,47 @@
+ DynamicParameters dp = new DynamicParameters();
+            StringBuilder SqlWhere = new StringBuilder(" where 1=1");
+            if (!string.IsNullOrEmpty(status))
+            {
+                dp.Add("@Success", status);
+                SqlWhere.Append(" and Success=@Success");
+            }
+            if (!string.IsNullOrEmpty(phone))
+            {
+                dp.Add("@Phone", phone);
+                SqlWhere.Append(" and MobileNumber=@Phone");
+            }
+            if (!string.IsNullOrEmpty(fid))
+            {
+                dp.Add("@FID", fid);
+                SqlWhere.Append(" and FID=@FID");
+            }
+            if (!string.IsNullOrEmpty(fName))
+            {
+                dp.Add("@RealName", "%" + fName + "%");
+                SqlWhere.Append(" and FranchiseeName like @RealName");
+            }
+            if (startDate != null)
+            {
+                dp.Add("@CreateTimeStart", startDate);
+                SqlWhere.Append(" and CreateTime>=@CreateTimeStart");
+            }
+            if (endtDate != null)
+            {
+                dp.Add("@CreateTimeEnd", endtDate.Value.AddDays(1));
+                SqlWhere.Append(" and CreateTime<=@CreateTimeEnd");
+            }
+            dp.Add("@PageSize", pageSize);
+            dp.Add("@PageIndex", pageIndex);
+
+            dp.Add("@CountPage", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            string Sql = string.Format("select * from (select top {1} * ,row_number() over(order by {0}) RowNumber  from {2} {3}) tmp where RowNumber>{4};select @CountPage=count(1) from {2} {3}", orderby, (pageIndex + 1) * pageSize, "View_FranchiseeGetPayOfflineList", SqlWhere.ToString(), pageIndex * pageSize);
+            using (var Connection = GetConnection())
+            {
+                IEnumerable<ViewPayOfflineListEntity> obj;
+                Connection.Open();
+                obj = Connection.QueryPaged<ViewPayOfflineListEntity>(Sql, dp, null, true);
+                record = dp.Get<int>("@CountPage");
+                if (obj != null)
+                    return obj.ToList();
+                return null;
+            }
