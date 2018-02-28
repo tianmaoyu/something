@@ -1,0 +1,106 @@
+   public CommonReslut CreateFranchiseeCourseOrderOfflinePayV2(long CID, long FID, long UID)
+        {
+            lock (objLock)
+            {
+                #region 事务块
+                var result = new CommonReslut();
+                result.Success = false;
+                try
+                {
+                    using (TransactionScope trans = new TransactionScope())
+                    {
+                        FranchiseeEntity franchisee = _franchiseeservice.GetEntityByFID(FID);
+                        if (franchisee == null || !franchisee.Disable)
+                        {
+                            result.Message = "无效的加盟商，或者已经被禁用";
+                            return result;
+                        }
+
+                        CourseEntity courseModel = _courseRepository.GetCourseById(CID);
+                        if (courseModel == null || courseModel.CourseType != (int)CourseType.Franchisee || !courseModel.Enabled)
+                        {
+                            result.Message = "无效的加盟商套餐！或者不属于加盟的套餐！或者已经被禁用套餐";
+                            return result;
+                        }
+
+                        decimal buyPrice = courseModel.Price.HasValue ? courseModel.Price.Value : 0;
+                        if (Convert.ToDecimal(franchisee.RechargeAmount) < buyPrice)
+                        {
+                            result.Message = $"余额不足！当前套餐为价格：{buyPrice},当前加盟商余额为：{franchisee.RechargeAmount}!";
+                            return result;
+                        }
+                        //更新加盟商信息
+                        franchisee.RechargeAmount = franchisee.RechargeAmount - Convert.ToDouble(buyPrice);
+                        franchisee.Commission += buyPrice * Convert.ToDecimal(courseModel.RechargeAmountrebate/100);
+                        var r = _franchiseeservice.Update(franchisee);
+                        if (r != 1)
+                        {
+                            result.Message = "更新加盟商的余额时失败";
+                            return result;
+                        }
+
+                        //订单
+                        CourseOrderEntity courseOrderModel = new CourseOrderEntity()
+                        {
+                            CID = CID,
+                            UID = UID,
+                            Price = courseModel.Price.HasValue ? courseModel.Price.Value : 0,
+                            CreateTime = DateTime.Now,
+                            Type = courseModel.Type,
+                            LessonQuantity = courseModel.LessonQuantity,
+                            LessonHour = courseModel.LessonHour,
+                            IsPay = true,
+                            CouponId = null,
+                            PaymentTime = DateTime.Now,
+
+                        };
+                        UserEntity userModel = _userRepository.GetUserEntityByUId(UID);
+                        if (userModel.FollowUpAUID.HasValue)
+                        {
+                            courseOrderModel.CurrentAUID = userModel.FollowUpAUID;
+                        }
+
+                        var _coid = _courseOrderRepository.CourseOrderInsert(courseOrderModel);
+                        if (!(_coid > 0))
+                        {
+                            result.Message = "写入订单时失败！联系管理员";
+                            return result;
+                        }
+
+                        //日志
+                        CommissionLogEntity commissionLog = new CommissionLogEntity()
+                        {
+                            FID = franchisee.FID,
+                            Commission = courseOrderModel.Price * Convert.ToDecimal(franchisee.CommissionPercent),
+                            CreateName = courseOrderModel.CreateName,
+                            CreateId = courseOrderModel.CreateId,
+                            CreateTime = courseOrderModel.CreateTime,
+                            COID = _coid,
+
+                        };
+                        var _logId = _commissionLogRepository.Insert(commissionLog);
+                        if (!(_logId > 0))
+                        {
+                            result.Message = "写入佣金日志时失败！联系管理员";
+                            return result;
+                        }
+                        trans.Complete();
+                        result.Success = true;
+                        return result;
+
+                    };
+                }
+                catch (TransactionAbortedException ex)
+                {
+                    result.Message = "事务错误:" + ex.ToString();
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    result.Message = "未知错误！:" + ex.ToString();
+                    return result;
+                }
+                #endregion
+            }
+
+        }
