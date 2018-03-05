@@ -1,0 +1,8 @@
+;with f as 
+(
+select * from tab where id=1
+union all
+select a.* from tab as a inner join f as b on a.pid=b.id
+)
+ 
+select * from f
