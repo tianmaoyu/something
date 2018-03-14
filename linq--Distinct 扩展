@@ -1,0 +1,23 @@
+public static class ObjectExtension
+    {
+        /// <summary>
+        /// 指定一个 进行去重复
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="keySelector"></param>
+        /// <returns></returns>
+        public static IEnumerable<TSource> Distinct<TSource,TKey>(this IEnumerable<TSource> source,Func<TSource,TKey> keySelector)
+        {
+            HashSet<TKey> hashSet = new HashSet<TKey>();
+            foreach(var item in source)
+            {
+                if (hashSet.Add(keySelector(item)))
+                {
+                    yield return item;
+                }
+            }
+        }
+
+    }
