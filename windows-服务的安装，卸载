@@ -1,0 +1,31 @@
+@echo off 
+@title 安装windows服务
+path %SystemRoot%\Microsoft.NET\Framework\v4.0.30319
+echo==============================================================
+echo=
+echo         windows服务程序安装
+echo=
+echo==============================================================
+@echo off 
+InstallUtil.exe D:\工作\代码\SourceCode\AliceABC\15.AliceABC.WindowsService\bin\15.AliceABC.WindowsService.exe
+pause
+
+
+
+
+
+
+
+
+
+@echo off 
+@title 卸载Windows服务
+path %SystemRoot%\Microsoft.NET\Framework\v4.0.30319
+echo==============================================================
+echo=
+echo          windows服务卸载
+echo=
+echo==============================================================
+@echo off 
+InstallUtil.exe /u  D:\工作\代码\SourceCode\AliceABC\15.AliceABC.WindowsService\bin\15.AliceABC.WindowsService.exe
+pause
