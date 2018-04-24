@@ -1,0 +1,19 @@
+  var builder = new ContainerBuilder();
+            var baseType = typeof(IDependency);
+            var assemblys = BuildManager.GetReferencedAssemblies().Cast<Assembly>().ToList();
+            builder.RegisterInstance(new Log4NetLoggerFactory("log4net.config")).As<ILoggerFactory>().SingleInstance();
+            builder.RegisterControllers(assemblys.ToArray());
+
+            //httpcontext
+            builder.RegisterModule(new AutofacWebTypesModule());
+
+            //过滤器注入
+            builder.RegisterFilterProvider();
+
+            //自动注入
+            builder.RegisterAssemblyTypes(assemblys.ToArray())
+                   .Where(t => baseType.IsAssignableFrom(t) && t != baseType)
+                   .AsImplementedInterfaces().InstancePerLifetimeScope();
+
+            var container = builder.Build();
+            DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
