@@ -1,0 +1,8 @@
+
+
+版本问题
+目前发现的原因是,dll的.net 版本比我的程序的高
+
+ 
+
+dll用的.net 4  而程序用的.net 4 client profile
