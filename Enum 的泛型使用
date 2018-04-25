@@ -1,0 +1,90 @@
+
+namespace EnumTest
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var testData = new CommonResult<string, Error1>();
+
+            testData.Code = Error1.dedug;
+          
+        }
+    }
+
+    public enum Error1
+    {
+        [Description("成功的！")]
+        Sucess = 0,
+        [Description("错误的！")]
+        error = 1,
+        [Description("消息！")]
+        info,
+        [Description("调试！")]
+        dedug
+    }
+    public enum Error2
+    {
+        [Description("成功的1！")]
+        Sucess = 0,
+        [Description("错误的1！")]
+        error = 1,
+        [Description("消息2！")]
+        info,
+        [Description("调试2！")]
+        dedug
+    }
+    public enum Error3 { Sucess = 0, error = 1, info, dedug }
+
+    public class CommonResult<T, TEnum> where T : class where TEnum : struct, IComparable, IConvertible, IFormattable
+    {
+        public CommonResult()
+        {
+            if (!typeof(TEnum).IsEnum)
+            {
+                throw new Exception("TEnum 需要一个枚举类型");
+            }
+            if (1 != Convert.ToInt32(Enum.Parse(typeof(TEnum), "Sucess")))
+            {
+                throw new Exception("TEnum 需要 一个名为：Sucess 并且 值为 1的 枚举项");
+            }
+        }
+
+        public bool Success
+        {
+            get
+            {
+                return Convert.ToInt32(Code) == 1;
+            }
+        }
+
+        public TEnum Code { set; get; }
+
+        public T Data { set; get; }
+
+        public string Message
+        {
+            get
+            {
+                return Hellper.GetDescription(Code);
+            }
+        }
+    }
+
+    public class Hellper
+    {
+        public static string GetDescription(object enumValue)
+        {
+            string value = enumValue.ToString();
+            FieldInfo field = enumValue.GetType().GetField(value);
+            object[] objs = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            if (objs == null || objs.Length == 0)
+                return value;
+            DescriptionAttribute descriptionAttribute = (DescriptionAttribute)objs[0];
+            return descriptionAttribute.Description;
+        }
+    }
+
+
+
+}
