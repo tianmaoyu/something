@@ -1,0 +1,59 @@
+            //UI项目只用引用service和repository的接口，不用引用实现的dll。
+           //如需加载实现的程序集，将dll拷贝到bin目录下即可，不用引用dll
+           var IServices = Assembly.Load("MyMVC3.Business.IServices");   
+           var Services = Assembly.Load("MyMVC3.Business.Services");
+           var IRepository = Assembly.Load("MyMVC3.Modules.IRepository");
+           var Repository = Assembly.Load("MyMVC3.Modules.Repository");
+ 
+           //根据名称约定（服务层的接口和实现均以Service结尾），实现服务接口和服务实现的依赖
+           builder.RegisterAssemblyTypes(IServices, Services)
+             .Where(t => t.Name.EndsWith("Service"))
+             .AsImplementedInterfaces();
+ 
+           //根据名称约定（数据访问层的接口和实现均以Repository结尾），实现数据访问接口和数据访问实现的依赖
+           builder.RegisterAssemblyTypes(IRepository, Repository)
+             .Where(t => t.Name.EndsWith("Repository"))
+             .AsImplementedInterfaces();
+             
+             
+             
+               var builder = new ContainerBuilder();
+            var baseType = typeof(IDependency);
+            //此处加载的 程序集可能不会完整【坑】
+
+            var assemblys = BuildManager.GetReferencedAssemblies().Cast<Assembly>().ToList();
+
+            builder.RegisterInstance(new Log4NetLoggerFactory("log4net.config")).As<ILoggerFactory>().InstancePerLifetimeScope().SingleInstance();
+            //静态方法中使用
+            builder.RegisterType<ComputeTokenManager>().As<ITokenManager>().InstancePerLifetimeScope();
+            //手动注册
+          
+
+            builder.RegisterAssemblyTypes(assemblys.ToArray())
+                   .Where(t => baseType.IsAssignableFrom(t) && t != baseType)
+                   .AsImplementedInterfaces().InstancePerLifetimeScope();
+
+            builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
+
+            var IServices = Assembly.Load("Acadsoc.IService");
+            var Services = Assembly.Load("Acadsoc.Service");
+            var IRepository = Assembly.Load("Acadsoc.IRepository");
+            var Repository = Assembly.Load("Acadsoc.Repository");
+
+           
+            builder.RegisterAssemblyTypes(IServices, Services)
+              .Where(t => baseType.IsAssignableFrom(t) && t != baseType)
+              .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterAssemblyTypes(IRepository, Repository)
+              .Where(t => baseType.IsAssignableFrom(t) && t != baseType)
+              .AsImplementedInterfaces().InstancePerLifetimeScope();
+
+            builder.RegisterType<TeacherUserService>().As<ITeacherUserService>();
+            builder.RegisterType<ManageTutorService>().As<IManageTutorService>();
+            builder.RegisterType<OrderLessonService>().As<IOrderLessonService>();
+            builder.RegisterType<StudentUserService>().As<IStudentUserService>();
+            builder.RegisterType<AclassroomService>().As<IAclassroomService>();
+
+            var container = builder.Build();
+            config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
+             
