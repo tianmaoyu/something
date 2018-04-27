@@ -1,0 +1,131 @@
+ private PredicateGroup GenerateOrderLessonQueryPredicateGroup(OrderLessonQuery query)
+        {
+            var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+
+            if (query.COID > 0)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.COID, Operator.Eq, query.COID));
+            }
+
+            if (query.CLID.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.CLID, Operator.Eq, query.CLID.Value));
+            }
+
+            if (query.UID.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.UID, Operator.Eq, query.UID.Value));
+            }
+
+            if (query.ClassTool.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.ClassTool, Operator.Eq, query.ClassTool.Value));
+            }
+
+            if (query.ClassStatus.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.ClassStatus, Operator.Eq, query.ClassStatus.Value));
+            }
+
+            if (query.Status.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.Status, Operator.Eq, query.Status.Value));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.FullName))
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.FullName, Operator.Like, "%" + query.FullName.Trim() + "%"));
+            }
+            if (query.ClassTime.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.ClassTime, Operator.Eq, query.ClassTime.Value));
+            }
+
+            if (query.DateStart.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.ClassTime, Operator.Ge, query.DateStart.Value));
+            }
+
+            if (query.DateStartEnd.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.ClassTime, Operator.Le, query.DateStartEnd.Value));
+            }
+
+            if (query.AllocationTimeStart.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.AllocationTime, Operator.Ge, query.AllocationTimeStart.Value));
+            }
+
+            if (query.AllocationTimeEnd.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.AllocationTime, Operator.Le, query.AllocationTimeEnd.Value));
+            }
+            if (query.ClassWay.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.ClassWay, Operator.Eq, query.ClassWay.Value));
+            }
+            if (query.IsTestOrder.HasValue)
+            {
+                if (query.IsTestOrder.Value)
+                {
+                    pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.Price, Operator.Eq, 0));
+                }
+                else
+                {
+                    pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.Price, Operator.Gt, 0));
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.StudentName))
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.StudentName, Operator.Like, "%" + query.StudentName.Trim() + "%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.StudentQQ))
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.StudentQQ, Operator.Eq, query.StudentQQ.Trim()));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.StudentPhone))
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.StudentPhone, Operator.Eq, query.StudentPhone.Trim()));
+            }
+            if (!string.IsNullOrWhiteSpace(query.CurrentSaleName))
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.CurrentSaleName, Operator.Like, "%" + query.CurrentSaleName.Trim() + "%"));
+            }
+
+            if (query.DescriptionInt.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.DescriptionInt, Operator.Eq, query.DescriptionInt.Value));
+            }
+            if (!string.IsNullOrWhiteSpace(query.FollowUpCSName))
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.FollowUpCSName, Operator.Like, "%" + query.FollowUpCSName.Trim() + "%"));
+            }
+
+            //多个课程状态筛选，对应sql中的in
+            if (query.StatusArrary != null && query.StatusArrary.Length > 0)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.Status, Operator.Eq, query.StatusArrary));
+            }
+
+            if (query.ClassStatusArrary != null && query.ClassStatusArrary.Length > 0)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.ClassStatus, Operator.Eq, query.ClassStatusArrary));
+            }
+            if (query.TUID.HasValue)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.TUID, Operator.Eq, query.TUID.Value));
+            }
+            if (query.FreeTry.HasValue && query.FreeTry.Value)
+            {
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.PayOfflineID, Operator.Eq, null));
+                pg.Predicates.Add(Predicates.Field<OrderCourseLesson>(f => f.PayOnlineID, Operator.Eq, null));
+            }
+
+
+
+
+            return pg;
+        }
