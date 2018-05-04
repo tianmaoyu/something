@@ -1,0 +1,22 @@
+  var list = dataTable.Rows.Cast<DataRow>();
+
+            ParallelOptions parallelOptions = new ParallelOptions();
+            parallelOptions.MaxDegreeOfParallelism = 10;
+
+        
+             Parallel.ForEach(list, parallelOptions, (item, parallelLoopState) => 
+             
+             {
+                 var classId = Convert.ToInt32(item["ClassInClassId"].ToString());
+                 var couresId = Convert.ToInt32(item["ClassInCourseId"].ToString());
+                 var json = new ClassInApi().DelCourseClass(couresId, classId);
+                 if ((int)json["error_info"]["errno"] == 1)
+                 {
+                    Console.WriteLine(JsonConvert.SerializeObject(json,Formatting.Indented));
+                 }
+                 else
+                 {
+                     Console.WriteLine(JsonConvert.SerializeObject(json, Formatting.Indented));
+                 }
+
+             });
