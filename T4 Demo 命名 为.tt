@@ -1,0 +1,317 @@
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ assembly name="System.Core.dll" #>
+<#@ assembly name="System.Data.dll" #>
+<#@ assembly name="System.Data.DataSetExtensions.dll" #>
+<#@ assembly name="System.Xml.dll" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Data.SqlClient" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ include file="$(SolutionDir)\16.GeneratorTool\DbHelper.ttinclude"  #>
+<#@ include file="T4Toolbox.tt" #>
+<# string solutionsPath = Host.ResolveAssemblyReference("$(SolutionDir)");  #>
+<#(new EntityTemplate(solutionsPath)).Render(); #>
+<#(new IRepositoryTemplate(solutionsPath)).Render(); #>
+<#(new RepositoryTemplate(solutionsPath)).Render(); #>
+<#(new IServiceTemplate(solutionsPath)).Render(); #>
+<#(new ServiceTemplate(solutionsPath)).Render(); #>
+
+<#+
+    public class Config
+    {
+		//配置TableName,Name 然后crit+s 保存进行代码生成
+		public static readonly string TableName="tu_TutorTag";
+		public static readonly string Name="TutorTag";
+        public static readonly string ConnectionString="data source=192.168.74.7;initial catalog=111;user id=sa;password=1223/*-;";
+        public static readonly string DbDatabase="111";
+
+		public static string ToLower(string s)
+        {
+            if (!string.IsNullOrEmpty(s))
+            {
+                if (s.Length > 1)
+                {
+                    return char.ToLower(s[0]) + s.Substring(1);
+                }
+                return char.ToLower(s[0]).ToString();
+            }
+            return null;
+        }
+    }
+#>
+
+
+<#+
+public class EntityTemplate : CSharpTemplate
+{
+	
+	public  EntityTemplate(string solutionsPath)
+	{
+
+		Output.Project =solutionsPath+ @"\2.AliceABC.Domain\2.AliceABC.Domain.csproj";
+		Output.File = @"Entity\Generated\"+Config.Name+"Entity.cs";
+		Output.PreserveExistingFile=true;
+	}
+	public override string TransformText()
+	{
+		//base.TransformText();
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using _5.AliceABC.Infrastructure;
+
+namespace _2.AliceABC.Domain
+{
+   public partial class <#=Config.Name#>Entity
+   {
+        <#+ foreach(DbColumn column in DbHelper.GetDbColumns(Config.ConnectionString, Config.DbDatabase, Config.TableName)){#>
+
+        /// <summary>
+        /// <#=column.Remark#>
+        /// </summary>        
+        public <#= column.CSharpType#><#+ if(column.CommonType.IsValueType && column.IsNullable){#>?<#+}#> <#=column.ColumnName#> { get; set; }
+        <#+}#> 
+      
+   }
+}
+<#+
+		return this.GenerationEnvironment.ToString();
+	}
+}
+
+#>
+
+
+<#+
+public class IRepositoryTemplate : CSharpTemplate
+{
+	
+	public  IRepositoryTemplate(string solutionsPath)
+	{
+
+		Output.Project =solutionsPath+ @"\2.AliceABC.Domain\2.AliceABC.Domain.csproj";
+		Output.File = @"Repository\Generated\I"+Config.Name+"Repository.cs";
+		Output.PreserveExistingFile=true;
+	}
+	public override string TransformText()
+	{
+		
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using _5.AliceABC.Infrastructure;
+
+namespace _2.AliceABC.Domain
+{
+   public partial interface I<#=Config.Name#>Repository:IDependency
+   {
+       <#+	var column = DbHelper.GetDbColumns(Config.ConnectionString, Config.DbDatabase, Config.TableName)[0];#>
+        
+       <#= column.CSharpType#> Insert(<#=Config.Name#>Entity entity);
+
+       <#=Config.Name#>Entity  GetEntityBy<#= column.ColumnName#>(<#= column.CSharpType#> <#= column.ColumnName.ToLower()#>);
+         
+       int Update(<#=Config.Name#>Entity entity);
+   }
+}
+<#+
+		return this.GenerationEnvironment.ToString();
+	}
+}
+
+#>
+
+
+
+<#+
+public class IServiceTemplate : CSharpTemplate
+{
+	
+	public  IServiceTemplate(string solutionsPath)
+	{
+
+		Output.Project =solutionsPath+ @"\2.AliceABC.Domain\2.AliceABC.Domain.csproj";
+		Output.File = @"Service\Generated\I"+Config.Name+"Service.cs";
+		Output.PreserveExistingFile=true;
+	}
+	public override string TransformText()
+	{
+		
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using _5.AliceABC.Infrastructure;
+
+namespace _2.AliceABC.Domain
+{
+   public partial interface I<#=Config.Name#>Service:IDependency
+   {
+       <#+	var column = DbHelper.GetDbColumns(Config.ConnectionString, Config.DbDatabase, Config.TableName)[0];#>
+        
+       <#= column.CSharpType#> Insert(<#=Config.Name#>Entity entity);
+
+       <#=Config.Name#>Entity  GetEntityBy<#= column.ColumnName#>(<#= column.CSharpType#> <#= column.ColumnName.ToLower()#>);
+         
+       int Update(<#=Config.Name#>Entity entity);
+      
+   }
+}
+<#+
+		return this.GenerationEnvironment.ToString();
+	}
+}
+
+#>
+
+
+
+
+<#+
+public class ServiceTemplate : CSharpTemplate
+{
+	
+	public  ServiceTemplate(string solutionsPath)
+	{
+
+		Output.Project =solutionsPath+ @"\3.AliceABC.Service\3.AliceABC.Service.csproj";
+		Output.File = @"Generated\"+Config.Name+"Service.cs";
+		Output.PreserveExistingFile=true;
+	}
+	public override string TransformText()
+	{
+		
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using _2.AliceABC.Domain;
+using _5.AliceABC.Infrastructure;
+using System.Data;
+
+namespace _3.AliceABC.Service
+{
+   public partial class <#=Config.Name#>Service:I<#=Config.Name#>Service
+   {
+        private readonly I<#=Config.Name#>Repository _<#=Config.ToLower(Config.Name)#>Repository;
+        public <#=Config.Name#>Service(I<#=Config.Name#>Repository <#=Config.ToLower(Config.Name)#>Repository)
+        {
+            _<#=Config.ToLower(Config.Name)#>Repository = <#=Config.ToLower(Config.Name)#>Repository;
+        }
+        
+       <#+	var column = DbHelper.GetDbColumns(Config.ConnectionString, Config.DbDatabase, Config.TableName)[0];#>
+        
+       public <#= column.CSharpType#> Insert(<#=Config.Name#>Entity entity)
+       {
+           return _<#=Config.ToLower(Config.Name)#>Repository.Insert(entity);
+       }
+
+       public <#=Config.Name#>Entity  GetEntityBy<#= column.ColumnName#>(<#= column.CSharpType#> <#= column.ColumnName.ToLower()#>)
+       {
+           return _<#=Config.ToLower(Config.Name)#>Repository.GetEntityBy<#= column.ColumnName#>(<#= column.ColumnName.ToLower()#>);
+       }
+         
+       public int Update(<#=Config.Name#>Entity entity)  
+       {
+           return _<#=Config.ToLower(Config.Name)#>Repository.Update(entity);
+       }     
+
+
+   }
+}
+<#+
+		return this.GenerationEnvironment.ToString();
+	}
+}
+
+#>
+
+
+
+
+
+<#+
+public class RepositoryTemplate : CSharpTemplate
+{
+	
+	public  RepositoryTemplate(string solutionsPath)
+	{
+
+		Output.Project =solutionsPath+ @"\4.AliceABC.Repository\4.AliceABC.Repository.csproj";
+		Output.File = @"Generated\"+Config.Name+"Repository.cs";
+		Output.PreserveExistingFile=true;
+	}
+	public override string TransformText()
+	{
+		
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using _2.AliceABC.Domain;
+using _5.AliceABC.Infrastructure;
+using Dapper;
+using System.Data;
+
+namespace _4.AliceABC.Repository
+{
+   public partial class <#=Config.Name#>Repository:BaseRepository,I<#=Config.Name#>Repository
+   {
+        <#+	var column = DbHelper.GetDbColumns(Config.ConnectionString, Config.DbDatabase, Config.TableName)[0];#>
+        
+       public <#= column.CSharpType#> Insert(<#=Config.Name#>Entity entity)
+       {
+          using (var connection = GetConnection())
+            {
+                connection.Open();
+                var id=  connection.InsertIgnoreKey(entity,"<#= Config.TableName#>", "<#= column.ColumnName#>");
+                return id;
+            }
+       }
+
+       public <#=Config.Name#>Entity  GetEntityBy<#= column.ColumnName#>(<#= column.CSharpType#> <#= column.ColumnName.ToLower()#>)
+       {
+            string sql = "select * from <#= Config.TableName#> where <#= column.ColumnName#>=@<#=column.ColumnName#>";
+            DynamicParameters dp = new DynamicParameters();
+            dp.Add("@<#=column.ColumnName#>",<#= column.ColumnName.ToLower()#>);
+            
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                return conn.Query<<#=Config.Name#>Entity>(sql,dp).FirstOrDefault();
+            }
+       }
+         
+       public int Update(<#=Config.Name#>Entity entity)  
+       {
+           using (var connection = GetConnection())
+            {
+                connection.Open();
+                return connection.UpdateIgnoreKey(entity,new {<#= column.ColumnName#>=entity.<#= column.ColumnName#>}, "<#= Config.TableName#>","<#= column.ColumnName#>");
+            }
+       }     
+      
+   }
+}
+<#+
+		return this.GenerationEnvironment.ToString();
+	}
+}
+
+#>
