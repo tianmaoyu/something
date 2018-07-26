@@ -1,0 +1,9 @@
+   var list = new List<string>();
+            var type = this.GetType();
+            //不需要父类的数据
+            var propertyList = type.GetProperties(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Instance);
+            foreach (var item in propertyList)
+            {
+                list.Add(item.Name);
+            }
+            return list;
