@@ -1,0 +1,69 @@
+       /// <summary>
+        /// 插入操作，自动处理数据库关键字,指定自增长 字段
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="data"></param>
+        /// <param name="table"></param>
+        /// <param name="autoIncrementName">自增长Name</param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns>返回标识行</returns>
+        public static int InsertIgnoreKey(this IDbConnection connection, dynamic data, string table, string autoIncrementName = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            var obj = data as object;
+            var properties = GetProperties(obj);
+            var columns = string.Join(",", properties.Where(p => !p.Equals(autoIncrementName)).Select(p => "[" + p + "]"));
+            var values = string.Join(",", properties.Where(p => !p.Equals(autoIncrementName)).Select(p => "@" + p));
+            //让字段跟值数量上保持相同
+            var sql = string.Empty;
+            if (string.IsNullOrEmpty(autoIncrementName))
+            {
+                sql = string.Format("insert into {0} ({1}) values ({2}) select cast(scope_identity() as bigint)", table, columns, values);
+            }
+            else
+            {
+                var whereStr = string.Format(@" where @{0}=@{1}", autoIncrementName, autoIncrementName);
+                sql = string.Format("insert into {0} ({1}) values ({2}) select cast(scope_identity() as bigint) {3}", table, columns, values, whereStr);
+            }
+            return connection.ExecuteScalar<int>(sql, obj, transaction, commandTimeout);
+        }
+
+        /// <summary>
+        /// 更新操作，自动处理数据库关键字，可以指定自增长id的字段名，自增长Id不进行操作
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="data"></param>
+        /// <param name="condition"></param>
+        /// <param name="autoIncrementName">自增长id名字</param>
+        /// <param name="table"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public static int UpdateIgnoreKey(this IDbConnection connection, dynamic data, dynamic condition, string table, string autoIncrementName = null, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            var obj = data as object;
+            var conditionObj = condition as object;
+            var updatePropertyInfos = GetPropertyInfos(obj);
+            var wherePropertyInfos = GetPropertyInfos(conditionObj);
+            var updateProperties = updatePropertyInfos.Select(p => p.Name).Where(p => !p.Equals(autoIncrementName));
+            var whereProperties = wherePropertyInfos.Select(p => p.Name);
+            var updateFields = string.Join(",", updateProperties.Select(p => "[" + p + "]" + " = @" + p));
+            var sql = string.Empty;
+            var whereFields = "where " + string.Join(" and ", whereProperties.Select(p => "[" + p + "]" + " = @w_" + p));
+            if (string.IsNullOrEmpty(autoIncrementName))
+            {
+                sql = string.Format("update {0} set {1}  {2}", table, updateFields, whereFields);
+            }
+            else
+            {
+                //补回字段，让字段和值数量上对齐
+                var whereStr = string.Format(" and @{0}=@{1}", autoIncrementName, autoIncrementName);
+                whereFields += whereStr;
+                sql = string.Format("update {0} set {1}  {2}", table, updateFields, whereFields);
+            }
+            var parameters = new DynamicParameters(data);
+            var expandoObject = new ExpandoObject() as IDictionary<string, object>;
+            wherePropertyInfos.ForEach(p => expandoObject.Add("w_" + p.Name, p.GetValue(conditionObj, null)));
+            parameters.AddDynamicParams(expandoObject);
+            return connection.Execute(sql, parameters, transaction, commandTimeout);
+        }
