@@ -1,0 +1,8 @@
+            
+            
+            //application/json
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            serializer.MaxJsonLength = Int32.MaxValue;
+            var jsonStr = serializer.Serialize(json);
+
+            return Content(jsonStr, "application/json", Encoding.UTF8);
