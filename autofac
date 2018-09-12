@@ -35,10 +35,10 @@
 
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
 
-            var IServices = Assembly.Load("Acadsoc.IService");
-            var Services = Assembly.Load("Acadsoc.Service");
-            var IRepository = Assembly.Load("Acadsoc.IRepository");
-            var Repository = Assembly.Load("Acadsoc.Repository");
+            var IServices = Assembly.Load("test.IService");
+            var Services = Assembly.Load("test.Service");
+            var IRepository = Assembly.Load("test.IRepository");
+            var Repository = Assembly.Load("test.Repository");
 
            
             builder.RegisterAssemblyTypes(IServices, Services)
