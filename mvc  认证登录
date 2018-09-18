@@ -48,3 +48,8 @@ public class WebAuthentication:IWebAuthentication
             HttpContext.Current.Response.Cookies.Add(cookie);
         }
     }
+
+
+// 借助 mvc 只带的机制 
+
+https://stackoverflow.com/questions/1064271/asp-net-mvc-set-custom-iidentity-or-iprincipal
