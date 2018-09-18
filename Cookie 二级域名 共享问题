@@ -1,0 +1,7 @@
+http://www.cnblogs.com/caomao/archive/2005/07/05/186606.html
+
+
+只需要：
+
+HttpCookie lcookie = Context.Response.Cookies[FormsAuthentication.FormsCookieName];
+lcookie.Domain = ".zendyhu.com";
