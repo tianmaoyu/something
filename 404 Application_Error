@@ -1,0 +1,8 @@
+  protected void Application_Error(object sender, EventArgs e)
+        {
+            var error = Server.GetLastError();
+            if (error is HttpException && ((HttpException)error).GetHttpCode() == 404)
+            {
+                Response.Redirect("/Home/NotFound?url=" + Request.RawUrl);
+            }
+        }
