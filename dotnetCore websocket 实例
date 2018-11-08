@@ -1,0 +1,147 @@
+https: 请求，其中 pfx 去 iis 导出一个 证书
+
+public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateWebHostBuilder(args).Build().Run();
+        }
+
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()
+                .UseKestrel(options =>//设置Kestrel服务器
+                 {
+                     options.Listen(IPAddress.Loopback, 44397, listenOptions =>
+                     {
+                         //iis中生成的pfx文件路径和指定的密码　
+                         var fileName = Directory.GetCurrentDirectory() + "\\wwwroot\\netcore.pfx";
+                         listenOptions.UseHttps(fileName, "111111");
+                     });
+                 });
+    }
+
+APP 中启用 :websocket
+
+  public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
+            //else
+            //{
+            //    app.UseExceptionHandler("/Error");
+            //    app.UseHsts();
+            //}
+
+            //app.UseHttpsRedirection();
+            //app.UseStaticFiles();
+            //app.UseCookiePolicy();
+
+            var webSocketOptions = new WebSocketOptions()
+            {
+                KeepAliveInterval = TimeSpan.FromSeconds(120),
+                ReceiveBufferSize = 4 * 1024
+            };
+            app.UseWebSockets(webSocketOptions);
+
+            app.Use(async (context, next) =>
+            {
+
+                if (context.WebSockets.IsWebSocketRequest)
+                {
+                    WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                    await Echo(context, webSocket);
+                }
+                else
+                {
+                    //websocket 申请协议
+                    var Sec_WebSocket_Key = context.Request.Headers["Sec-WebSocket-Key"][0]?.ToString();
+                    //if (upgrade.Equals("Upgrade"))
+                    //{
+                    //    //Sec - WebSocket - Extensions: permessage - deflate; client_max_window_bits
+                    //    //Sec - WebSocket - Key: FVVIDBcooVlUOm4ZCCjfhg ==
+                    //    //Sec-WebSocket-Version: 13
+                    //    //Upgrade: websocket
+                    //}
+                    var setWebSocketAccept = ComputeSocketAcceptString(Sec_WebSocket_Key);
+                    string response = ("HTTP/1.1 101 Switching Protocols" + Environment.NewLine
+                        + "Connection: Upgrade" + Environment.NewLine
+                        + "Upgrade: websocket" + Environment.NewLine
+                        + "Sec-WebSocket-Accept: " + setWebSocketAccept);
+                    //context.Response.Headers.
+                    context.Response.WriteAsync(response);
+                    //context.Response.StatusCode = HttpStatus
+                    //context.Response.StatusCode = 400;
+                }
+
+
+                await next();
+
+
+            });
+            //app.UseMvc();
+        }
+
+        public static string ComputeSocketAcceptString(string secWebSocketKey)
+        {
+            // this is a guid as per the web socket spec
+            const string webSocketGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+            string concatenated = secWebSocketKey + webSocketGuid;
+            byte[] concatenatedAsBytes = Encoding.UTF8.GetBytes(concatenated);
+            byte[] sha1Hash = SHA1.Create().ComputeHash(concatenatedAsBytes);
+            string secWebSocketAccept = Convert.ToBase64String(sha1Hash);
+            return secWebSocketAccept;
+        }
+        private async Task Echo(HttpContext context, WebSocket webSocket)
+        {
+            var buffer = new byte[1024 * 4];
+            WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            while (!result.CloseStatus.HasValue)
+            {
+                var _buffer2 = Encoding.UTF8.GetBytes("服务器已经收到了！");
+                var buffer3_ = _buffer2.Concat(buffer).ToArray();
+                //  Encoding.UTF8.GetString(buffer);
+                await webSocket.SendAsync(new ArraySegment<byte>(buffer3_, 0, result.Count + _buffer2.Length), result.MessageType, result.EndOfMessage, CancellationToken.None);
+                //await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count),);
+                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            }
+            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+        }
+        
+        
+        # 3 浏览器 使用 websocket ,两种方式
+        
+        
+        var ulr = "ws://localhost:5000";
+var webSocket = new WebSocket(ulr);
+webSocket.onopen = function (_event) {
+    console.info("打开链接");
+};
+webSocket.onerror = function (event) {
+    console.info("链接错误");
+};
+webSocket.onmessage = function (message) {
+    console.info(message);
+};
+webSocket.onclose = function (event) {
+    console.info("关闭");
+};
+webSocket.send("hello world");
+
+
+
+var socket = new WebSocket('wss://localhost:44397');
+// Connection opened
+socket.addEventListener('open', function (event) {
+    socket.send('Hello Server!');
+});
+
+// Listen for messages
+socket.addEventListener('message', function (event) {
+    console.log('Message from server ', event.data);
+});
+        
+        
