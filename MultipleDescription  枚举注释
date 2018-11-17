@@ -1,0 +1,78 @@
+/// <summary>
+    /// 注释
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+    public class MultipleDescription : Attribute
+    {
+        /// <summary>
+        /// 得到 值，和对应值得描述
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static Dictionary<int, string> GetDescriptionValues<TEnum>() where TEnum : struct, IComparable, IConvertible, IFormattable
+        {
+            var result = new Dictionary<int, string>();
+            var values = Enum.GetValues(typeof(TEnum));
+            foreach (var value in values)
+            {
+                var field = value.GetType().GetField(value.ToString());
+                var objs = field.GetCustomAttributes(typeof(MultipleDescription), false).FirstOrDefault();
+                var text = "字段：" + value.ToString() + ";中文解释：" + ((MultipleDescription)objs).ZH + ";英文解释：" + ((MultipleDescription)objs).EN;
+                result.Add((int)value, text);
+            }
+            result.OrderBy(item => item.Key);
+            return result;
+        }
+
+        /// <summary>
+        /// 得到枚举的中文
+        /// </summary>
+        /// <param name="enumType">枚举</param>
+        /// <returns></returns>
+        public static string GetZhDescription(object enumType)
+        {
+            var fieldinfo = enumType.GetType().GetField(enumType.ToString());
+            var obj = fieldinfo.GetCustomAttributes(typeof(MultipleDescription), false).FirstOrDefault();
+            return ((MultipleDescription)obj).ZH;
+        }
+
+        /// <summary>
+        /// 得到枚举的英文
+        /// </summary>
+        /// <param name="enumType">枚举</param>
+        /// <returns></returns>
+        public static string GetEnDescription(object enumType)
+        {
+            var fieldinfo = enumType.GetType().GetField(enumType.ToString());
+            var obj = fieldinfo.GetCustomAttributes(typeof(MultipleDescription), false).FirstOrDefault();
+            return ((MultipleDescription)obj).EN;
+        }
+
+        /// <summary>
+        /// 中文
+        /// </summary>
+        public string ZH { get; } = "此 code 没有配置 中文解释";
+        /// <summary>
+        /// 英文
+        /// </summary>
+        public string EN { get; } = "此 code 没有配置 英文解释";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="zh"></param>
+        public MultipleDescription(string zh)
+        {
+            ZH = zh;
+        }
+        /// <summary>
+        /// 注释
+        /// </summary>
+        /// <param name="zh">中文</param>
+        /// <param name="en">英文</param>
+        public MultipleDescription(string zh, string en)
+        {
+            ZH = zh;
+            EN = en;
+        }
+    }
