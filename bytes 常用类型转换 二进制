@@ -115,3 +115,5 @@
         //byte[] ping = Encoding.UTF8.GetBytes("你的密码是什么?");
         //string str = Encoding.UTF8.GetString(ping);
     }
+    
+    js:https://blog.csdn.net/qq_31490071/article/details/51505388?utm_source=blogxgwz8
