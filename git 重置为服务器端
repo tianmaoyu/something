@@ -1,2 +1,17 @@
 git fetch --all
 git reset --hard origin/master
+
+创建 提交有关远程的
+…or create a new repository on the command line
+echo "# VScode-TypeScript" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/tianmaoyu/VScode-TypeScript.git
+git push -u origin master
+
+
+创建 提交有关远程的
+…or push an existing repository from the command line
+git remote add origin https://github.com/tianmaoyu/VScode-TypeScript.git
+git push -u origin master
