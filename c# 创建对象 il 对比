@@ -1,5 +1,6 @@
 
 https://www.cnblogs.com/nele/p/7689186.html
+https://www.cnblogs.com/tdfblog/p/DeepCopy-By-IL.html
 
 public class CreationHelper<T> where T : new()
     {
