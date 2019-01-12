@@ -1,0 +1,30 @@
+
+https://www.cnblogs.com/nele/p/7689186.html
+
+public class CreationHelper<T> where T : new()
+    {
+        public static Func<T> objCreator = null;
+
+        public static T New()
+        {
+            if (objCreator == null)
+            {
+                Type objectType = typeof(T);
+
+                ConstructorInfo defaultCtor = objectType.GetConstructor(new Type[] { });
+
+                DynamicMethod dynMethod = new DynamicMethod(
+                    name: string.Format("_{0:N}", Guid.NewGuid()),
+                    returnType: objectType,
+                    parameterTypes: null);
+
+                var gen = dynMethod.GetILGenerator();
+                gen.Emit(OpCodes.Newobj, defaultCtor);
+                gen.Emit(OpCodes.Ret);
+
+                objCreator = dynMethod.CreateDelegate(typeof(Func<T>)) as Func<T>;
+            }
+
+            return objCreator();
+        }
+ }
