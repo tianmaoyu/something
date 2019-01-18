@@ -2,3 +2,5 @@
 Data Source=127.0.0.1;Initial Catalog=DatabaseName;User ID=UserName;Password=Passwrod
 
 server=127.0.0.1;uid=UserName;password=Passwrod;database=DatabaseName;Application Name=ApplicationName;
+
+https://www.cnblogs.com/yanganok/p/5189104.html
