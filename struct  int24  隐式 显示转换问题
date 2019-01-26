@@ -1,0 +1,152 @@
+namespace BufferWriteAndRead
+{
+
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    public  struct Int24 : IComparable, IConvertible, IFormattable, IComparable<int>, IEquatable<int>
+    {
+        private  int m_value; 
+
+
+        static public implicit operator Int24(int s)
+        {
+            if (s != 1) throw new Exception("dddd");
+            return Int24.Parse(s);
+        }
+
+        static public explicit operator int(Int24 s)
+        {
+            
+            return s.m_value;
+        }
+
+        static public Int24 Parse(int s)
+        {
+            Int24 m = new Int24();
+            m.m_value = s;
+            return m;
+        }
+
+        public override string ToString()
+        {
+            return this.m_value.ToString();
+        }
+        public TypeCode GetTypeCode()
+        {
+            return TypeCode.Int32;
+        }
+
+
+        bool IConvertible.ToBoolean(IFormatProvider provider)
+        {
+            return Convert.ToBoolean(m_value);
+        }
+
+        char IConvertible.ToChar(IFormatProvider provider)
+        {
+            return Convert.ToChar(m_value);
+        }
+
+        sbyte IConvertible.ToSByte(IFormatProvider provider)
+        {
+            return Convert.ToSByte(m_value);
+        }
+
+        byte IConvertible.ToByte(IFormatProvider provider)
+        {
+            return Convert.ToByte(m_value);
+        }
+
+
+        ushort IConvertible.ToUInt16(IFormatProvider provider)
+        {
+            return Convert.ToUInt16(m_value);
+        }
+
+        int IConvertible.ToInt32(IFormatProvider provider)
+        {
+            return Convert.ToInt32(m_value);
+        }
+
+        uint IConvertible.ToUInt32(IFormatProvider provider)
+        {
+            return Convert.ToUInt32(m_value);
+        }
+
+        long IConvertible.ToInt64(IFormatProvider provider)
+        {
+            return Convert.ToInt64(m_value);
+        }
+
+        ulong IConvertible.ToUInt64(IFormatProvider provider)
+        {
+            return Convert.ToUInt64(m_value);
+        }
+
+        float IConvertible.ToSingle(IFormatProvider provider)
+        {
+            return Convert.ToSingle(m_value);
+        }
+
+        double IConvertible.ToDouble(IFormatProvider provider)
+        {
+            return Convert.ToDouble(m_value);
+        }
+
+        decimal IConvertible.ToDecimal(IFormatProvider provider)
+        {
+            return Convert.ToDecimal(m_value);
+        }
+
+        public DateTime ToDateTime(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ToType(Type conversionType, IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(short other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string ToString(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string ToString(string format, IFormatProvider formatProvider)
+        {
+            return this.m_value.ToString();
+        }
+
+        public int CompareTo(object obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CompareTo(short other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CompareTo(int other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(int other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public short ToInt16(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+}
