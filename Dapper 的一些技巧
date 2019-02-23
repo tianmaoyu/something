@@ -1,0 +1,12 @@
+like:
+
+
+ dp.Add("@CreaterName", query.CreaterName);
+                sqlBuilder.Append(" and CreaterName like '%@ClientName%'");
+                
+输出：
+
+  dp.Add("@CountPage", dbType: DbType.Int32, direction: ParameterDirection.Output);
+       var countPage = dp.Get<Nullable<int>>("@CountPage");
+       
+       
