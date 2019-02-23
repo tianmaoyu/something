@@ -1,6 +1,7 @@
 like:
 
-
+   dp.Add("@InputData", logQuery.InputData);
+                sqlBuilder.Append(" and InputData like '%'+@InputData+'%' ");
  dp.Add("@CreaterName", query.CreaterName);
                 sqlBuilder.Append(" and CreaterName like '%@ClientName%'");
                 
