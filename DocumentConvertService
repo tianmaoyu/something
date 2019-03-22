@@ -1,0 +1,157 @@
+ public class DocumentConverter
+    {
+
+
+        /// <summary>
+        /// 保存图片
+        /// </summary>
+        /// <param name="saveDirectory"></param>
+        /// <param name="pageInfos"></param>
+        /// <param name="fileTitle"></param>
+        /// <param name="index"></param>
+        /// <param name="image"></param>
+        private static void SavePng(string saveDirectory, string fileTitle, int index, Image image)
+        {
+            var newFileTitle = string.Format("{0}_{1}.png", fileTitle, index);
+            string pngFile = String.Format("{0}\\{1}", saveDirectory, newFileTitle);
+            image.Save(pngFile, ImageFormat.Png);
+           
+        }
+
+
+        #region Aspose 进行转
+
+        /// <summary>
+        /// ppt Aspose
+        /// </summary>
+        /// <param name="saveDirectory"></param>
+        /// <param name="fileName"></param>
+        /// <param name="fileTitle"></param>
+        /// <returns></returns>
+        public static int PdfConverter_Aspose(string saveDirectory, string fileName,  string fileTitle)
+        {
+            using (Aspose.Pdf.Document pdf = new Aspose.Pdf.Document(fileName))
+            {
+                var device = new Aspose.Pdf.Devices.PngDevice();
+                for (int i = 0; i < pdf.Pages.Count; i++)
+                {
+                    using (MemoryStream memoryStream = new MemoryStream())//
+                    {
+                        device.Process(pdf.Pages[i + 1], memoryStream);
+                        using (var image = Image.FromStream(memoryStream))
+                        {
+                            SavePng(saveDirectory, fileTitle, i, image);
+                        }
+                    }
+                }
+                return pdf.Pages.Count;
+            }
+        }
+
+
+        /// <summary>
+        /// doc 转换 Aspose
+        /// </summary>
+        /// <param name="saveDirectory"></param>
+        /// <param name="fileName"></param>
+        /// <param name="pageInfos"></param>
+        /// <param name="fileTitle"></param>
+        /// <returns></returns>
+        public static int DocConverter_Aspose(string saveDirectory, string fileName, string fileTitle)
+        {
+            try
+            {
+                Aspose.Words.Document doc = new Aspose.Words.Document(fileName);
+                Aspose.Words.Saving.ImageSaveOptions imageSaveOptions = new Aspose.Words.Saving.ImageSaveOptions(Aspose.Words.SaveFormat.Png);
+                for (int i = 0; i < doc.PageCount; i++)
+                {
+                    using (MemoryStream memoryStream = new MemoryStream())
+                    {
+                        imageSaveOptions.PageIndex = i;
+                        doc.Save(memoryStream, imageSaveOptions);
+                        using (var image = Image.FromStream(memoryStream))
+                        {
+                            SavePng(saveDirectory, fileTitle, i, image);
+                        }
+                    }
+                }
+                return doc.PageCount;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+
+
+        /// <summary>
+        /// PPT 转换 Aspose
+        /// 先转换 为pdf
+        /// </summary>
+        /// <param name="saveDirectory"></param>
+        /// <param name="fileName"></param>
+        /// <param name="pageInfos"></param>
+        /// <param name="fileTitle"></param>
+        /// <returns></returns>
+        public static int PptConveter_Aspose(string saveDirectory, string fileName, string fileTitle)
+        {
+            //先把 ppt 转换为pdf
+            using (Aspose.Slides.Presentation ppt = new Aspose.Slides.Presentation(fileName))
+            {
+                using (MemoryStream memoryStreamPpt = new MemoryStream())
+                {
+                    ppt.Save(memoryStreamPpt, Aspose.Slides.Export.SaveFormat.Pdf);
+
+                    //再从 pdf 转为图片      
+                    #region  
+                    using (Aspose.Pdf.Document pdf = new Aspose.Pdf.Document(memoryStreamPpt))
+                    {
+                        var device = new Aspose.Pdf.Devices.PngDevice();
+                        for (int i = 0; i < pdf.Pages.Count; i++)
+                        {
+                            using (MemoryStream memoryStream = new MemoryStream())//
+                            {
+                                device.Process(pdf.Pages[i + 1], memoryStream);
+                                using (var image = Image.FromStream(memoryStream))
+                                {
+                                    SavePng(saveDirectory, fileTitle, i, image);
+                                }
+                            }
+                        }
+                        return pdf.Pages.Count;
+                    }
+                    #endregion // pdf 转换结束
+                }
+            }
+        }
+
+        #endregion
+
+        #region Spire 转换
+       
+        /// <summary>
+        /// ppt 转换 Spire
+        /// </summary>
+        /// <param name="saveDirectory"></param>
+        /// <param name="fileName"></param>
+        /// <param name="pageInfos"></param>
+        /// <param name="fileTitle"></param>
+        /// <returns></returns>
+        public static int PdfConverter_Spire(string saveDirectory, string fileName, string fileTitle)
+        {
+            using (Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument(fileName))
+            {
+                for (int i = 0; i < pdf.Pages.Count; i++)
+                {
+                    using (Image image = pdf.SaveAsImage(i, 135, 192))//135*8 *192* 10  =  1080*1920 像素
+                    {
+                        SavePng(saveDirectory, fileTitle, i, image);
+                    }
+                }
+                return pdf.Pages.Count;
+            }
+        }
+        #endregion
+
+    }
