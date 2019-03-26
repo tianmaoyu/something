@@ -1,0 +1,70 @@
+using Autofac;
+using Autofac.Extras.DynamicProxy;
+using Castle.DynamicProxy;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp03
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var builder = new ContainerBuilder();
+            builder.RegisterType<Circle>().As<IShape>().EnableInterfaceInterceptors();//EnableClassInterceptors 注意两种方式
+            builder.Register(c => new CallLogger());
+            var container = builder.Build();
+            var circle = container.Resolve<IShape>();
+
+            var area = circle.Area(2, 100,"ssss");
+
+            Console.WriteLine("Hello World!");
+        }
+    }
+
+
+
+    public interface IShape
+    {
+        double Area(int length, int width, string requstId);
+    }
+
+
+
+    [Intercept(typeof(CallLogger))]
+    public class Circle : IShape
+    {
+
+        public double Area(int length, int width,string requstId)
+        {
+          
+            Console.WriteLine("执行中");
+            return length * width;
+        }
+    }
+
+
+
+
+    public class CallLogger : IInterceptor
+    {
+        public void Intercept(IInvocation invocation)
+        {
+            var requestId = invocation.Arguments.Where(i => i.ToString().Equals("requstId")).FirstOrDefault();
+            Console.WriteLine("开始 {0} with parameters {1}... ",
+              invocation.Method.Name,
+              string.Join(", ", invocation.Arguments.Select(a => (a ?? "").ToString()).ToArray()));
+            invocation.Proceed();
+            Console.WriteLine("结束: result was {0}.", invocation.ReturnValue);
+        }
+    }
+
+
+
+
+
+}
