@@ -1,0 +1,162 @@
+using GameServe.ECSH;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace GameServe.Infrastructure
+{
+    /// <summary>
+    /// 
+    /// 0 表示带写入数据的，1 表示带读数据
+    /// </summary>
+    public class MessageBuffer
+    {
+        /// <summary>
+        /// 每个client 的缓存
+        /// </summary>
+        private static int Client_Cache_Length = 1024;
+        
+        /// <summary>
+        /// 每一个 client 可以缓存的消息的最大个数
+        /// </summary>
+        private static int Msg_Max_Count = 16;
+
+        /// <summary>
+        /// 每个消息的缓存，每一个消息的第一位用来存储 可读，写 枚举
+        /// Client_Cache_Length/Client_Message__Max_Count
+        /// </summary>
+        private static int Message_Length = 64;
+
+        /// <summary>
+        /// 缓存
+        /// </summary>
+        private byte[] byteBuffer = new byte[1024 * 30];
+
+
+        public bool WriteByteMessage(int clientId, byte[] bytes)
+        {
+            if (bytes.Length > Message_Length - 1) return false;
+            var index = this.GetWritealbeIndex(clientId);
+            if (index < 0) return false;
+            bytes.CopyTo(this.byteBuffer, index + 1);
+            byteBuffer[index] = 1;
+            return true;
+        }
+
+        /// <summary>
+        /// 找一个可用写入数据的位置，-1 表示没有位置。
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <param name="next"></param>
+        /// <returns></returns>
+        private int GetWritealbeIndex(int clientId, int next = 0)
+        {
+            if (next > Msg_Max_Count-1) return -1;
+            var clientStart = Client_Cache_Length * clientId;
+            var messageStatus = byteBuffer[clientStart + next];
+            if (messageStatus == (byte)ByteStatus.WatingWrite) return clientStart;
+            return GetWritealbeIndex(clientId, next++);
+        }
+
+        public byte[] ReadByteMeeage(int clientId)
+        {
+            var index = this.GetReadableIndex(clientId);
+            if (index == -1) return null;
+            var byteArray = new ArraySegment<byte>(byteBuffer, index + 1, Message_Length - 1);
+            return byteArray.ToArray();
+        }
+
+        private int GetReadableIndex(int clientId = 0, int next = 0)
+        {
+            if (next > Msg_Max_Count-1) return -1;
+            var clientStart = Client_Cache_Length * clientId;
+            var messageStatus = byteBuffer[clientStart + next];
+            if (messageStatus == 1) return clientStart;
+            return GetReadableIndex(clientId, next++);
+        }
+
+        public List<ClientMsg> GetAllClientMsg(List<int> clientIdList)
+        {
+            var msgList = new List<ByteMsg>();
+            foreach (var clientId in clientIdList)
+            {
+                var _msgList = this.GetClientMsg(clientId);
+                msgList.AddRange(_msgList);
+            }
+            //序列化成对应的实体
+            return msgList.Select(i => this.ConvertMsg(i)).ToList();
+        }
+
+        private List<ByteMsg> GetClientMsg(int clientId)
+        {
+            var msgList = new List<ByteMsg>();
+            var clientStart = Client_Cache_Length * clientId;
+            for (var i = 0; i < Client_Cache_Length; i += Message_Length)
+            {
+                var index = clientStart + i;
+                var messageStatus = byteBuffer[index];
+
+                //是否 已经可以读取，读取以后，把表示位改为 等待写入状态
+                if (messageStatus != (int)ByteStatus.WatingRead) continue;
+                var buffer = new ArraySegment<byte>(byteBuffer, index + 1, Message_Length - 1).ToArray();
+                byteBuffer[index] = (byte)ByteStatus.WatingWrite;
+
+                var msg = new ByteMsg();
+                msg.ClientId = clientId;
+                msg.ClientMsgType = (int)buffer[0];
+                msg.Buffer = buffer;
+                msgList.Add(msg);
+            }
+
+            return msgList;
+        }
+
+        /// <summary>
+        /// 还有 client id 没有赋值
+        /// </summary>
+        /// <param name="byteMsg"></param>
+        /// <returns></returns>
+        private ClientMsg ConvertMsg(ByteMsg byteMsg)
+        {
+            var clientMsgType = (ClientMsgType)byteMsg.ClientMsgType;
+            switch (clientMsgType)
+            {
+                case ClientMsgType.MoveTop:
+                //return PlayerMoveCMsg.Deserialize(byteMsg.Buffer, 0);
+                default:
+                    return null;
+            }
+        }
+    }
+
+    public class ByteMsg
+    {
+        public int ClientId { get; set; }
+        public int ClientMsgType { get; set; }
+
+        public byte[] Buffer { get; set; }
+    }
+
+    public enum ByteStatus
+    {
+        /// <summary>
+        /// 等待写入状态
+        /// </summary>
+        WatingWrite = 0,
+
+        /// <summary>
+        /// 等待读状态
+        /// </summary>
+        WatingRead = 1,
+
+        /// <summary>
+        /// 没有消息  可读
+        /// </summary>
+        AnyMessage = 3,
+
+        /// <summary>
+        /// buffer已经满,不可写入消息
+        /// </summary>
+        BufferFill = 4,
+    }
+}
