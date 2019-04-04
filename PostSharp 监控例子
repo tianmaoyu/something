@@ -1,0 +1,120 @@
+using BSF.Aop.Attributes.Around;
+using Newtonsoft.Json;
+using PostSharp.Aspects;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+namespace ConsoleApp1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var test01 = new Test01();
+            test01.Method01(1, "eric", "age");
+            Console.WriteLine(JsonConvert.SerializeObject(Cache.MethodeMonitorCache));
+            Console.ReadKey();
+        }
+    }
+
+
+    public class Test01
+    {
+
+        [Log]
+        public string Method01(int i,string name,string age)
+        {
+            System.Console.WriteLine("Hello world!" + i);
+            Method02(i,name);
+            return name;
+        }
+
+        [Log]
+        public string Method02(int i, string name)
+        {
+            System.Console.WriteLine("Hello world!" + i);
+            Method03(i);
+            return name;
+        }
+
+        [Log]
+        public string Method03(int i)
+        {
+            System.Console.WriteLine("Hello world!" + i);
+            return i.ToString();
+        }
+    }
+
+    [Serializable]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+    public class LogAttribute : OnMethodBoundaryAspect
+    {
+       
+
+        public override void OnEntry(MethodExecutionArgs args)
+        {
+            Console.WriteLine("OnEntry");
+            Console.WriteLine(JsonConvert.SerializeObject(args.Arguments,Formatting.Indented));
+            var count = args.Arguments.Count;
+            var lastArg = args.Arguments[count - 1].ToString();
+            if (lastArg.Contains("requestId"))
+            {
+                var monitor = args.Arguments[args.Arguments.Count - 1] as RequestMonitor;
+                monitor.Stopwatch.Restart();
+                base.OnEntry(args);
+            }
+            else
+            {
+                var monitor = new RequestMonitor();
+                monitor.Stopwatch = new Stopwatch();
+                monitor.Stopwatch.Start();
+                var array = new object[count + 2];
+                args.Arguments.CopyTo(array, 0);
+                array[count] = "requestId";
+                array[count+1] = monitor;
+                args.Arguments = Arguments.Create(array);
+                base.OnEntry(args);
+            }
+
+        }
+
+
+        public override void OnExit(MethodExecutionArgs args)
+        {
+            Console.WriteLine("OnExit");
+            var monitor = args.Arguments[args.Arguments.Count - 1] as RequestMonitor;
+            var milliseconds = monitor.Stopwatch.ElapsedMilliseconds;
+            var count = args.Arguments.Count;
+            var requestId = args.Arguments[count - 2].ToString();
+        
+            if (Cache.MethodeMonitorCache.ContainsKey(requestId))
+            {
+                Cache.MethodeMonitorCache[requestId].Add(args.Method.Name, milliseconds);
+            }
+            else
+            {
+                var dic = new Dictionary<string, long>();
+                dic.Add(args.Method.Name, milliseconds);
+                Cache.MethodeMonitorCache.Add(requestId, dic);
+            }
+
+            base.OnExit(args);
+          
+        }
+    }
+
+
+    public class Cache
+    {
+        public static Dictionary<string, Dictionary<string,long> > MethodeMonitorCache = new Dictionary<string, Dictionary<string, long>>();
+    }
+
+    public class RequestMonitor
+    {
+        public Stopwatch Stopwatch { get; set; }
+    }
+}
