@@ -1,1 +1,64 @@
 http://www.cnblogs.com/johnx/p/10150671.html
+
+
+
+    public class WebApiApplication : System.Web.HttpApplication
+    {
+        protected void Application_Start()
+        {
+            WebApiConfig.EnableAuthorize = false;
+
+            GlobalConfiguration.Configure(WebApiConfig.Register);
+            var config = GlobalConfiguration.Configuration;
+
+            config.Services.Replace(typeof(IHttpControllerSelector), new VersionControllerSelector(config));
+
+            config.Filters.Add(new AuthorizationFilter());
+            config.Filters.Add(new ExceptionFilter());
+        }
+    }
+
+    /// <summary>
+    /// 多版本的 控制器 选择器
+    /// </summary>
+    public class VersionControllerSelector: DefaultHttpControllerSelector
+    {
+
+        private readonly HttpConfiguration _configuration;
+        public VersionControllerSelector(HttpConfiguration httpConfiguration) :base(httpConfiguration)
+        {
+            _configuration = httpConfiguration;
+        }
+
+        public override HttpControllerDescriptor SelectController(HttpRequestMessage request)
+        {
+
+            var routeData = request.GetRouteData();
+
+            var version = routeData.Values["version"].ToString();
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                version = "v1";
+            }
+
+            var assembliesResolver = _configuration.Services.GetAssembliesResolver();
+            var controllerResolver = _configuration.Services.GetHttpControllerTypeResolver();
+            var controllerTypes = controllerResolver.GetControllerTypes(assembliesResolver);
+           
+
+            version = "." + version + ".";
+
+            var versionController = controllerTypes.FirstOrDefault(x => x.FullName.Contains(version));
+
+            var specificControllerDescriptor = new HttpControllerDescriptor
+            {
+                Configuration = _configuration,
+               // ControllerName = base.GetControllerName(request),
+                ControllerType = versionController
+            };
+
+            return specificControllerDescriptor;
+        }
+       
+    }
+
