@@ -1,6 +1,7 @@
 http://www.cnblogs.com/johnx/p/10150671.html
 
 
+```c#
 
     public class WebApiApplication : System.Web.HttpApplication
     {
@@ -61,4 +62,4 @@ http://www.cnblogs.com/johnx/p/10150671.html
         }
        
     }
-
+```
