@@ -1,0 +1,3 @@
+首先 tsc typescript 自带的编译工具，编译成 js,由于运行在服务器端，则需要 使用 browserify 进行转换 comminjs 到浏览器端
+
+browserify main.js  > bundle.js
