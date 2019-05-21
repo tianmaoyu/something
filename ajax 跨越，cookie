@@ -1,0 +1,12 @@
+	$.ajax({
+					url: createUrl,
+					type: "post",
+					xhrFields: {
+						withCredentials: true
+					},
+					crossDomain: true,
+					contentType: 'application/x-www-form-urlencoded',
+					data: parameter,
+					dataType: "json",
+					success: createCourseOrderSuccess,
+				});
