@@ -23,3 +23,5 @@ $ git push -u origin master 上面命令将本地的master分支推送到origin�
 对于 查看一个 文件的修改记录  git log -p  fileName 
 
 git -rm -f -r filename, 删除文件，当igore 无效，因为已经开始跟踪
+git push -f 强制覆盖（使用本地的)
+git revert -n id  (使用 id copy 一份 并 header 并指向它) 回退使用
