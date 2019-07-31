@@ -1,0 +1,9 @@
+       String 中的的
+       
+       
+        public static bool operator ==(String a, String b);
+        
+        public static bool operator !=(String a, String b);
+
+        //隐试转换
+        public static implicit operator ReadOnlySpan<char>(String value);
