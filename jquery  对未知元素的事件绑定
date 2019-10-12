@@ -1,1 +1,4 @@
  $(document).on("click", "#survey-success", function () {}
+ 
+ 
+ 原理是：事件冒泡，到达 document是  使用用 event.target （原始出发的位置）的相关的属性 来判断
