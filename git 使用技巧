@@ -28,3 +28,18 @@ git revert -n id  (使用 id copy 一份 并 header 并指向它) 回退使用
 
 
 # 修改本地配置 git config --local -e      //编辑本地git配置 使用 ssh or https
+
+# 设置ss
+git config --global http.proxy 'socks5://127.0.0.1:1080'
+
+git config --global https.proxy 'socks5://127.0.0.1:1080'
+
+# 设置代理
+git config --global https.proxy http://127.0.0.1:1080
+
+git config --global https.proxy https://127.0.0.1:1080
+
+# 取消代理
+git config --global --unset http.proxy
+
+git config --global --unset https.proxy
