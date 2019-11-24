@@ -25,3 +25,6 @@ $ git push -u origin master 上面命令将本地的master分支推送到origin�
 git -rm -f -r filename, 删除文件，当igore 无效，因为已经开始跟踪
 git push -f 强制覆盖（使用本地的)
 git revert -n id  (使用 id copy 一份 并 header 并指向它) 回退使用
+
+
+# 修改本地配置 git config --local -e      //编辑本地git配置 使用 ssh or https
