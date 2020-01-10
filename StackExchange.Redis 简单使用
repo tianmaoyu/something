@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 
 namespace redis_test
@@ -16,7 +17,13 @@ namespace redis_test
             Console.WriteLine(db.StringGet("mykey"));
             //直接命令
             Console.WriteLine(db.Execute("get", "mykey"));
-          
+            var user = new User();
+            user.Id = 1;
+            user.Name = "eric";
+
+            db.HashSet("User_Table", user.Id, JsonConvert.SerializeObject(user));
+            var userStr= db.HashGet("User_Table", user.Id);
+            var _user= JsonConvert.DeserializeObject<User>(userStr);
 
             db.SortedSetAdd("Rank_Test", "eric1", 10);
             db.SortedSetAdd("Rank_Test", "eric2", 9);
@@ -42,6 +49,10 @@ namespace redis_test
       
     }
 
-
+    public class User
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
    
 }
