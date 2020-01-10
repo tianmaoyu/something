@@ -1,0 +1,13 @@
+ public static void Main(string[] args)
+        {
+            var configBuilder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+
+            var config = configBuilder.Build();
+            var url = config["host"].ToString();
+
+            WebHost.CreateDefaultBuilder(args)
+                .UseUrls(url).UseStartup<Startup>()
+                .Build().Run();
+        }
