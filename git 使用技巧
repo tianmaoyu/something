@@ -26,6 +26,13 @@ git -rm -f -r filename, 删除文件，当igore 无效，因为已经开始跟�
 git push -f 强制覆盖（使用本地的)
 git revert -n id  (使用 id copy 一份 并 header 并指向它) 回退使用
 
+## 当git 过于庞大时会遇到的问题
+$ git clone --depth 1 https://github.com/dogescript/xxxxxxx.git
+$ git remote set-branches origin 'remote_branch_name'
+$ git fetch --depth 1 origin remote_branch_name
+$ git checkout remote_branch_name
+————————————————
+
 
 # 修改本地配置 git config --local -e      //编辑本地git配置 使用 ssh or https
 
@@ -43,3 +50,12 @@ git config --global https.proxy https://127.0.0.1:1080
 git config --global --unset http.proxy
 
 git config --global --unset https.proxy
+
+
+## 当 git 过于庞大时 
+$ git clone --depth 1 https://github.com/dogescript/xxxxxxx.git
+$ git remote set-branches origin 'remote_branch_name'
+$ git fetch --depth 1 origin remote_branch_name
+$ git checkout remote_branch_name
+
+
