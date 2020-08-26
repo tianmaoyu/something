@@ -172,3 +172,39 @@
         jQuery(document).ready(function () {
             TableAjax.init();
         });
+
+## 闭包核心
+>参考：https://blog.csdn.net/weixin_43586120/article/details/89456183
+闭包：内部函数总是可以访问其所在的外部函数中声明的参数和变量，即使在其外部函数被返回（寿命终结）了之后。
+每次外部函数执行的时 候，外部函数的引用地址不同，都会重新创建一个新的地址。
+```js
+
+function outerFn(){
+  var i = 0; 
+  function innerFn(){
+      i++;
+      console.log(i);
+  }
+  return innerFn;
+}
+var inner = outerFn();  //每次外部函数执行的时候,都会开辟一块内存空间,外部函数的地址不同，都会重新创建一个新的地址
+inner();
+inner();
+inner();
+var inner2 = outerFn();
+inner2();
+inner2();
+inner2();   //1 2 3 1 2 3
+
+
+
+var lis = document.getElementsByTagName("li");
+for(var i=0;i<lis.length;i++){
+  (function(i){
+      lis[i].onclick = function(){
+           console.log(i);
+      };
+  })(i);       //事件处理函数中闭包的写法
+} 
+```
+## 总结： 执行函数创建内存空间，保存变量。
